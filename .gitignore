@@ -1,0 +1,22 @@
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# .netrc file
+.netrc
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# VS Code directories
+.vscode/
+
+# Custom files for this project
+cookies.txt
