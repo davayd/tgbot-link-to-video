@@ -18,32 +18,30 @@ For more detailed information on creating and using the cookies file, refer to t
 
 Remember to keep your `cookies.txt` file secure and do not share it, as it contains sensitive information.
 
-## Running the Bot
+## Running the Bot locally
 
 1. Make sure you install `node` and `npm` first. You can download Node.js from [here](https://nodejs.org/en/download/).
 
-2. Before running the bot, make sure to set the `BOT_TOKEN` environment variable. 
-
-```bash
-BOT_TOKEN=your_bot_token_here
-```
-
-```powershell
-$env:BOT_TOKEN="your_bot_token_here"
-```
-
-OR you can do this by updating the variables in the `.env` file in the project folder.
-
-3. Run once before start to install dependencies:
+2. Run once before start to install dependencies:
 
 ```bash
 npm install
 ```
 
-4. To run the bot, use the following command:
+3. To run the bot from command line, make sure to set the `BOT_TOKEN` environment variable.
 
 ```bash
-npm start
+BOT_TOKEN=your_bot_token_here; npm run start
+```
+
+```powershell
+$env:BOT_TOKEN="your_bot_token_here"; npm run start
+```
+
+OR you can do this by updating the variables in the `.env` file in the project folder and then running:
+
+```bash
+npm run start
 ```
 
 ## Docker
