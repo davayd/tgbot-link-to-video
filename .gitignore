@@ -23,3 +23,6 @@ lerna-debug.log*
 
 # Custom files for this project
 cookies.txt
+
+# Build directory
+dist/

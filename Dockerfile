@@ -1,17 +1,52 @@
 # Use an official Node.js runtime as the base image
 FROM node:22
 
-# Define build arguments
-# Docker can only access files within the build context or its subdirectories. It cannot access files outside of this context for security reasons
-ARG COOKIE_FILE_PATH=cookies.txt # Default value
-
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json (if available)
-COPY package*.json ./
+# Copy package.json
+COPY package.json ./
+COPY tsconfig.json ./
+COPY src ./src
 
 # Install system dependencies
+RUN apt-get update && apt-get install -y \
+    "libasound2" \
+    "libatk-bridge2.0-0" \
+    "libatk1.0-0" \
+    "libatspi2.0-0" \
+    "libc6" \
+    "libcairo2" \
+    "libcups2" \
+    "libdbus-1-3" \
+    "libdrm2" \
+    "libexpat1" \
+    "libgbm1" \
+    "libglib2.0-0" \
+    "libnspr4" \
+    "libnss3" \
+    "libpango-1.0-0" \
+    "libpangocairo-1.0-0" \
+    "libstdc++6" \
+    "libudev1" \
+    "libuuid1" \
+    "libx11-6" \
+    "libx11-xcb1" \
+    "libxcb-dri3-0" \
+    "libxcb1" \
+    "libxcomposite1" \
+    "libxcursor1" \
+    "libxdamage1" \
+    "libxext6" \
+    "libxfixes3" \
+    "libxi6" \
+    "libxkbcommon0" \
+    "libxrandr2" \
+    "libxrender1" \
+    "libxshmfence1" \
+    "libxss1" \
+    "libxtst6" 
+
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     python3 \
@@ -27,14 +62,14 @@ RUN python3 -m venv /opt/venv \
 # Install project dependencies
 RUN npm install
 
-# Copy the rest of the application code
-COPY . .
+# Build the application
+RUN npm run build
 
 # Expose the port the app runs on (if needed)
 # EXPOSE 8080
 
 # Command to run the application
-CMD ["node", "bot.js"]
+CMD ["node", "dist/main.js"]
 
 # Docker build command:
 # docker build --build-arg -t telegram-video-bot .
