@@ -6,6 +6,7 @@ import { promisify } from "util";
 const streamPipeline = promisify(pipeline);
 
 import puppeteer from "puppeteer";
+import { FileType } from "../models";
 
 const IG_URL = "https://igram.world/reels-downloader";
 
@@ -53,10 +54,14 @@ async function getFileLocationFromIgram(url: string) {
 export async function igramApiDownloadVideo(
   url: string,
   outputPath: string
-): Promise<void> {
+): Promise<{ fileType: FileType }> {
   const location = await getFileLocationFromIgram(url);
-  let format = "mp4";
-  if (url.includes(".jpg") || url.includes(".png") || url.includes(".jpeg")) {
+  let format: FileType = "mp4";
+  if (
+    location.includes(".jpg") ||
+    location.includes(".png") ||
+    location.includes(".jpeg")
+  ) {
     format = "jpg";
   }
   const response = await fetch(location);
@@ -67,4 +72,6 @@ export async function igramApiDownloadVideo(
     response.body,
     createWriteStream(outputPath + "." + format)
   );
+
+  return { fileType: format };
 }
