@@ -8,9 +8,12 @@ const streamPipeline = promisify(pipeline);
 import puppeteer from "puppeteer";
 import { FileType } from "../models";
 
-const IG_URL = "https://igram.world/reels-downloader";
+const IG_URL_REELS = "https://igram.world/reels-downloader";
+const IG_URL_STORIES = "https://igram.world/story-saver";
 
 async function getFileLocationFromIgram(url: string) {
+  const igramUrl = url.includes("stories") ? IG_URL_STORIES : IG_URL_REELS;
+
   // Launch the browser and open a new blank page
   const browser = await puppeteer.launch({
     args: ["--no-sandbox"],
@@ -18,7 +21,7 @@ async function getFileLocationFromIgram(url: string) {
   const page = await browser.newPage();
 
   // Navigate the page to a URL.
-  await page.goto(IG_URL);
+  await page.goto(igramUrl);
 
   // Set screen size.
   await page.setViewport({ width: 1080, height: 1024 });

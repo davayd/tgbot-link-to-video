@@ -120,15 +120,13 @@ export async function processAndSendVideo({
     }
   } catch (error: unknown) {
     logError("processing video", error);
-
     await saveUnhandledLink(url, chatId, username);
-
     await sendErrorMessage(
       `😿 Похоже, что превышен лимит скачивания видео-мемов, попробуй позже или попробуйте команду /retry чтобы повторить загрузку 🤞.`
     );
   } finally {
-    if (statusMessage) {
-      await sendStatus(``); // This will delete the status message if not in silent mode
+    if (statusMessage && !silent) {
+      await bot.deleteMessage(chatId, statusMessage.message_id);
     }
   }
 }
