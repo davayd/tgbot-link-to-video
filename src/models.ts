@@ -9,4 +9,5 @@ export interface ProcessVideoContext {
   username: string;
   silent?: boolean;
   downloader: DownloaderType;
+  originalMessageId: number;
 }

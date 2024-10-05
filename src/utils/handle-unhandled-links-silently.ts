@@ -20,6 +20,7 @@ export async function handleUnhandledLinksSilently(
         chatId: link.chatId,
         username: link.username,
         downloader: getDownloaderType(link.url),
+        originalMessageId: link.originalMessageId,
       });
     } catch (error: any) {
       logger.error(`Error processing video for URL: ${link.url}`, {
@@ -38,7 +39,8 @@ export async function removeUnhandledLink(url: string): Promise<void> {
 export async function saveUnhandledLink(
   url: string,
   chatId: number | string,
-  username: string
+  username: string,
+  originalMessageId: number
 ): Promise<void> {
-  await db.saveUnhandledLink(url, chatId, username);
+  await db.saveUnhandledLink(url, chatId, username, originalMessageId);
 }

@@ -1,30 +1,24 @@
 import "dotenv/config";
 import TelegramBot from "node-telegram-bot-api";
 import { getDownloaderType, isValidUrl } from "./utils/is-valid-url.js";
-import { processAndSendVideo } from "./utils/process-and-send-video.js";
 import { logger } from "./utils/winston-logger.js";
 import { scheduleJob } from "node-schedule";
-import {
-  connectToDatabase,
-  loadUnhandledLinks,
-  saveUnhandledLink,
-} from "./utils/database.js";
+import { connectToDatabase, loadUnhandledLinks } from "./utils/database.js";
 import { handleUnhandledLinksSilently } from "./utils/handle-unhandled-links-silently.js";
-import { DownloaderType } from "./models.js";
+import { addToVideoQueue } from "./utils/video-queue.js";
 
-// Use the BOT_TOKEN environment variable
+// Bot token
 const token = process.env.BOT_TOKEN;
-
 if (!token) {
   console.error("BOT_TOKEN environment variable is not set");
   process.exit(1);
 }
-
 const bot = new TelegramBot(token, { polling: true });
 
-// Add the new command handler /retry
+// Retry command
 bot.onText(/\/retry/, async (msg) => {
   const chatId = msg.chat.id;
+  const originalMessageId = msg.message_id;
 
   const statusMessage = await bot.sendMessage(
     chatId,
@@ -42,6 +36,7 @@ bot.onText(/\/retry/, async (msg) => {
           message_id: statusMessage.message_id,
         }
       );
+      await bot.deleteMessage(chatId, originalMessageId);
       return;
     }
 
@@ -54,34 +49,28 @@ bot.onText(/\/retry/, async (msg) => {
     );
 
     for (const link of unhandledLinks) {
-      try {
-        // Use the existing download and send logic
-        await processAndSendVideo({
-          bot,
-          url: link.url,
-          chatId: link.chatId,
-          username: link.username || "unknown",
-          downloader: getDownloaderType(link.url),
-        });
-      } catch (error) {
-        logger.error(`Error processing video for URL: ${link.url}`, {
-          error: (error as Error).message,
-          stack: (error as Error).stack,
-        });
-
-        break;
-      }
+      await addToVideoQueue({
+        bot,
+        url: link.url,
+        chatId: link.chatId,
+        username: link.username || "unknown",
+        downloader: getDownloaderType(link.url),
+        originalMessageId: link.originalMessageId,
+      });
     }
   } catch (error) {
     logger.error("Error in /retry command", {
       error: (error as Error).message,
       stack: (error as Error).stack,
     });
-    await bot.deleteMessage(chatId, statusMessage.message_id);
+  } finally {
+    if (statusMessage) {
+      await bot.deleteMessage(chatId, statusMessage.message_id);
+    }
   }
 });
 
-// Update the existing URL handler to save unhandled links
+// Inputs from instagram and youtube
 bot.onText(/(.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const originalMessageId = msg.message_id;
@@ -91,22 +80,14 @@ bot.onText(/(.+)/, async (msg, match) => {
     return;
   }
 
-  try {
-    await processAndSendVideo({
-      bot,
-      url,
-      chatId,
-      username: msg.from?.username || "unknown",
-      downloader: getDownloaderType(url),
-    });
-    await bot.deleteMessage(chatId, originalMessageId);
-  } catch (error) {
-    logger.error(`Error processing video for URL: ${url}`, {
-      error: (error as Error).message,
-      stack: (error as Error).stack,
-    });
-    await saveUnhandledLink(url, chatId, msg.from?.username || "unknown");
-  }
+  await addToVideoQueue({
+    bot,
+    url,
+    chatId,
+    username: msg.from?.username || "unknown",
+    downloader: getDownloaderType(url),
+    originalMessageId,
+  });
 });
 
 // Error handler for polling errors

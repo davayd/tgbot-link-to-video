@@ -4,7 +4,6 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import TelegramBot from "node-telegram-bot-api";
 import * as db from "./database.js";
-import { saveUnhandledLink } from "./handle-unhandled-links-silently.js";
 import { igramApiDownloadVideo } from "../downloaders/instagram-downloader.js";
 import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { FileType, ProcessVideoContext } from "../models.js";
@@ -104,26 +103,16 @@ export async function processAndSendVideo({
     }
 
     await sendStatus(`🔄 Отправляем: ${fileName}`);
-
-    // Send the file
-    try {
-      await sendFile(filePath, fileType);
-      await db.removeUnhandledLink(url);
-    } catch (error: unknown) {
-      logError("sending video", error);
-      await sendErrorMessage(
-        `😿 Не удалось отправить файл. Попробуйте еще раз позже.`
-      );
-    } finally {
-      // Delete the file after sending
-      await fs.unlink(filePath);
-    }
+    await sendFile(filePath, fileType);
+    await db.removeUnhandledLink(url);
+    await fs.unlink(filePath);
   } catch (error: unknown) {
     logError("processing video", error);
-    await saveUnhandledLink(url, chatId, username);
-    await sendErrorMessage(
-      `😿 Похоже, что превышен лимит скачивания видео-мемов, попробуй позже или попробуйте команду /retry чтобы повторить загрузку 🤞.`
-    );
+    if (!silent) {
+      await sendErrorMessage(
+        `😿 Похоже, что произошла ошибка при скачивании видео-мема, попробуй позже команду /retry чтобы повторить загрузку 🤞.`
+      );
+    }
   } finally {
     if (statusMessage && !silent) {
       await bot.deleteMessage(chatId, statusMessage.message_id);

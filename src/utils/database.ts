@@ -1,34 +1,43 @@
-import { createClient } from 'redis';
+import { createClient } from "redis";
 import { logger } from "./winston-logger.js";
 
 const client = createClient({
-  url: process.env.REDIS_URL
+  url: process.env.REDIS_URL,
 });
 
-client.on('error', (err) => logger.error('Redis Client Error', err));
+client.on("error", (err) => logger.error("Redis Client Error", err));
 
 export async function connectToDatabase() {
   await client.connect();
   logger.info("Connected to Redis");
 }
 
-export async function saveUnhandledLink(url: string, chatId: number | string, username: string) {
+export async function saveUnhandledLink(
+  url: string,
+  chatId: number | string,
+  username: string,
+  originalMessageId: number
+) {
   await client.hSet(`unhandled:${url}`, {
     chatId: chatId.toString(),
-    username
+    username,
+    originalMessageId: originalMessageId.toString(),
   });
 }
 
 export async function loadUnhandledLinks() {
-  const keys = await client.keys('unhandled:*');
-  const links = await Promise.all(keys.map(async (key) => {
-    const data = await client.hGetAll(key);
-    return {
-      url: key.replace('unhandled:', ''),
-      chatId: parseInt(data.chatId),
-      username: data.username
-    };
-  }));
+  const keys = await client.keys("unhandled:*");
+  const links = await Promise.all(
+    keys.map(async (key) => {
+      const data = await client.hGetAll(key);
+      return {
+        url: key.replace("unhandled:", ""),
+        chatId: parseInt(data.chatId),
+        username: data.username,
+        originalMessageId: parseInt(data.originalMessageId),
+      };
+    })
+  );
   return links;
 }
 
@@ -37,5 +46,9 @@ export async function removeUnhandledLink(url: string) {
 }
 
 export async function updateLastProcessedAt(url: string) {
-  await client.hSet(`unhandled:${url}`, 'lastProcessedAt', new Date().toISOString());
+  await client.hSet(
+    `unhandled:${url}`,
+    "lastProcessedAt",
+    new Date().toISOString()
+  );
 }
