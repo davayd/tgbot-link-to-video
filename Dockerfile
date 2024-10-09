@@ -1,58 +1,96 @@
 # Use an official Node.js runtime as the base image
-FROM node:22-bullseye-slim
+FROM node:22-alpine
+
+# Устанавливаем зависимости для Playwright
+RUN apk add --no-cache python3 make g++ jpeg-dev libpng-dev cairo-dev pango-dev giflib-dev
+
+# Устанавливаем Playwright и его зависимости
+RUN npm install -g playwright
+RUN playwright install chromium
+RUN apk add --no-cache \
+    ffmpeg \
+    chromium \
+    font-noto-emoji \
+    font-noto-cjk \
+    ttf-freefont \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Install Playwright dependencies
+RUN apk add --no-cache \
+    ffmpeg \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    nodejs \
+    yarn
+
+# Set environment variables for Playwright
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+# Install Playwright
+RUN yarn add playwright-core
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
 # Copy package.json
-COPY package.json ./
+COPY package*.json ./
 COPY tsconfig.json ./
 COPY src ./src
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    "libasound2" \
-    "libatk-bridge2.0-0" \
-    "libatk1.0-0" \
-    "libatspi2.0-0" \
-    "libc6" \
-    "libcairo2" \
-    "libcups2" \
-    "libdbus-1-3" \
-    "libdrm2" \
-    "libexpat1" \
-    "libgbm1" \
-    "libglib2.0-0" \
-    "libnspr4" \
-    "libnss3" \
-    "libpango-1.0-0" \
-    "libpangocairo-1.0-0" \
-    "libstdc++6" \
-    "libudev1" \
-    "libuuid1" \
-    "libx11-6" \
-    "libx11-xcb1" \
-    "libxcb-dri3-0" \
-    "libxcb1" \
-    "libxcomposite1" \
-    "libxcursor1" \
-    "libxdamage1" \
-    "libxext6" \
-    "libxfixes3" \
-    "libxi6" \
-    "libxkbcommon0" \
-    "libxrandr2" \
-    "libxrender1" \
-    "libxshmfence1" \
-    "libxss1" \
-    "libxtst6" 
+RUN apk update && apk add --no-cache \
+    alsa-lib \
+    at-spi2-core \
+    musl \
+    cairo \
+    cups-libs \
+    dbus-libs \
+    libdrm \
+    expat \
+    mesa-gbm \
+    glib \
+    nspr \
+    nss \
+    pango \
+    libstdc++ \
+    eudev-libs \
+    libuuid \
+    libx11 \
+    libxcb \
+    libxcomposite \
+    libxcursor \
+    libxdamage \
+    libxext \
+    libxfixes \
+    libxi \
+    libxkbcommon \
+    libxrandr \
+    libxrender \
+    libxshmfence \
+    libxtst
 
-RUN apt-get update && apt-get install -y \
+RUN apk update && apk add --no-cache \
     ffmpeg \
     python3 \
-    python3-pip \
-    python3-venv \
-    && ln -s /usr/bin/python3 /usr/bin/python
+    py3-pip
+
+# Remove these lines
+# && ln -sf /usr/bin/python3 /usr/bin/python \
+# && python3 -m ensurepip \
+# && pip3 install --no-cache-dir --upgrade pip setuptools
+
+# Instead, use apk to install Python packages
+RUN apk add --no-cache py3-setuptools
 
 # Install yt-dlp in a virtual environment
 RUN python3 -m venv /opt/venv \
@@ -69,7 +107,7 @@ RUN npm run build
 # EXPOSE 8080
 
 # Command to run the application
-CMD ["node", "dist/main.js"]
+CMD ["npm", "start"]
 
 # Docker build command:
 # docker build --build-arg -t telegram-video-bot .
