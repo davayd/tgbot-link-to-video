@@ -22,10 +22,12 @@ export async function addToVideoQueue(
   await queue.add(async () => {
     try {
       await processAndSendVideo(context);
-      await context.bot.deleteMessage(
-        context.chatId,
-        context.originalMessageId
-      );
+      if (context.chatId && context.originalMessageId) {
+        await context.bot.deleteMessage(
+          context.chatId,
+          context.originalMessageId
+        );
+      }
     } catch (error) {
       try {
         await saveUnhandledLink(

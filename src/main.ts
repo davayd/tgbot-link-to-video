@@ -52,7 +52,7 @@ bot.onText(/\/retry/, async (msg) => {
       await addToVideoQueue({
         bot,
         url: link.url,
-        chatId: link.chatId,
+        chatId: (Number.isNaN(link.chatId) || !link.chatId) ? chatId : link.chatId,
         username: link.username || "unknown",
         downloader: getDownloaderType(link.url),
         originalMessageId: link.originalMessageId,
