@@ -22,25 +22,35 @@ async function getFileLocationFromIgram(url: string) {
   const page = await browser.newPage();
 
   try {
+    logger.info(`Navigating to ${igramUrl}`);
     await page.goto(igramUrl);
 
+    logger.info(`Setting viewport size to 1080x1024`);
     await page.setViewportSize({ width: 1080, height: 1024 });
 
     try {
+      logger.info(`Waiting for consent button`);
       await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent", { timeout: 5000 });
       await page.click(".fc-consent-root .fc-button.fc-cta-consent");
     } catch (error) {
       logger.info("Consent button not found or not clickable. Skipping...");
     }
 
+    logger.info(`Filling search form with ${url}`);
     await page.fill("#search-form-input", url);
+    logger.info(`Clicking search button`);
     await page.click(".search-form__button");
 
+    logger.info(`Waiting for modal button`);
     await page.waitForSelector(".modal__btn");
+    logger.info(`Clicking modal button`);
     await page.click(".modal__btn");
-
+    
+    logger.info(`Waiting for search result`);
     await page.waitForSelector("text=Search Result");
+    logger.info(`Waiting for media content image`);
     await page.waitForSelector(".media-content__image");
+    logger.info(`Waiting for media content info`);
     await page.waitForSelector(".media-content__info");
 
     const href = await page.evaluate(() => {
