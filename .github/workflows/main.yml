@@ -29,7 +29,7 @@ jobs:
         run: docker cp ./dist/. tgbot-link-to-video-app-1:/usr/src/app/dist
 
       - name: Restart PM2
-        run: docker exec tgbot-link-to-video-app-1 pm2 restart all
+        run: docker restart tgbot-link-to-video-app-1
 
       - name: Clean up
         run: rm -rf ./dist

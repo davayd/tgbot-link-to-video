@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as the base image
-FROM keymetrics/pm2:latest-alpine
+FROM node:22-alpine
 
 # Устанавливаем зависимости для Playwright
 RUN apk add --no-cache python3 make g++ jpeg-dev libpng-dev cairo-dev pango-dev giflib-dev
@@ -85,12 +85,6 @@ RUN apk update && apk add --no-cache \
     python3 \
     py3-pip
 
-# Remove these lines
-# && ln -sf /usr/bin/python3 /usr/bin/python \
-# && python3 -m ensurepip \
-# && pip3 install --no-cache-dir --upgrade pip setuptools
-
-# Instead, use apk to install Python packages
 RUN apk add --no-cache py3-setuptools
 
 # Install yt-dlp in a virtual environment
@@ -108,7 +102,7 @@ RUN npm run build
 # EXPOSE 8080
 
 # Command to run the application
-CMD [ "pm2-runtime", "start", "ecosystem.config.js" ]
+CMD ["npm", "start"]
 
 # Docker build command:
 # docker build --build-arg -t telegram-video-bot .
