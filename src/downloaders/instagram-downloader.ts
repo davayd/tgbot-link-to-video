@@ -7,6 +7,7 @@ const streamPipeline = promisify(pipeline);
 
 import { chromium } from "playwright-core";
 import { FileType } from "../models";
+import { logger } from "../utils/winston-logger";
 
 const IG_URL_REELS = "https://igram.world/reels-downloader";
 const IG_URL_STORIES = "https://igram.world/story-saver";
@@ -15,7 +16,7 @@ async function getFileLocationFromIgram(url: string) {
   const igramUrl = url.includes("stories") ? IG_URL_STORIES : IG_URL_REELS;
 
   const browser = await chromium.launch({
-    executablePath: '/usr/bin/chromium-browser',
+    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
   const page = await browser.newPage();
@@ -29,7 +30,7 @@ async function getFileLocationFromIgram(url: string) {
       await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent", { timeout: 5000 });
       await page.click(".fc-consent-root .fc-button.fc-cta-consent");
     } catch (error) {
-      console.log("Consent button not found or not clickable. Skipping...");
+      logger.info("Consent button not found or not clickable. Skipping...");
     }
 
     await page.fill("#search-form-input", url);
