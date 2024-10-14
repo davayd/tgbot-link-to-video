@@ -25,8 +25,12 @@ async function getFileLocationFromIgram(url: string) {
 
     await page.setViewportSize({ width: 1080, height: 1024 });
 
-    await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent");
-    await page.click(".fc-consent-root .fc-button.fc-cta-consent");
+    try {
+      await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent", { timeout: 5000 });
+      await page.click(".fc-consent-root .fc-button.fc-cta-consent");
+    } catch (error) {
+      console.log("Consent button not found or not clickable. Skipping...");
+    }
 
     await page.fill("#search-form-input", url);
     await page.click(".search-form__button");
