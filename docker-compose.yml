@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      pull_policy: build
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
       - REDIS_URL=redis://redis:6379
