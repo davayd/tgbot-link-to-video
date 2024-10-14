@@ -2,51 +2,34 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 'lts/*'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Build
-      run: npm run build
-
-  deploy:
-    needs: build
+  build-and-deploy:
     runs-on: [self-hosted, raspberry-ga]
     if: github.ref == 'refs/heads/main'
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 'lts/*'
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build
-      run: npm run build
+      - name: Build
+        run: npm run build
 
-    - name: Deploy
-      run: |
-        echo "Deploying to Raspberry Pi"
-        # Здесь добавьте команды для деплоя вашего приложения
-        # Например:
-        # pm2 stop app || true
-        # pm2 start dist/main.js --name app
+      - name: Copy new build to app directory
+        run: docker cp ./dist/. tgbot-link-to-video-app-1:/usr/src/app/dist
+
+      - name: Restart PM2
+        run: docker exec tgbot-link-to-video-app-1 pm2 restart all
+
+      - name: Clean up
+        run: rm -rf ./dist

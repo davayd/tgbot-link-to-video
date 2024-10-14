@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as the base image
-FROM node:22-alpine
+FROM keymetrics/pm2:latest-alpine
 
 # Устанавливаем зависимости для Playwright
 RUN apk add --no-cache python3 make g++ jpeg-dev libpng-dev cairo-dev pango-dev giflib-dev
@@ -46,6 +46,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY tsconfig.json ./
 COPY src ./src
+COPY ecosystem.config.js ./
 
 # Install system dependencies
 RUN apk update && apk add --no-cache \
@@ -107,7 +108,7 @@ RUN npm run build
 # EXPOSE 8080
 
 # Command to run the application
-CMD ["npm", "start"]
+CMD [ "pm2-runtime", "start", "ecosystem.config.js" ]
 
 # Docker build command:
 # docker build --build-arg -t telegram-video-bot .
