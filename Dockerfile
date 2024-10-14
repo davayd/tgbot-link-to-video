@@ -46,7 +46,6 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY tsconfig.json ./
 COPY src ./src
-COPY ecosystem.config.js ./
 
 # Install system dependencies
 RUN apk update && apk add --no-cache \
