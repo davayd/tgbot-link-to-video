@@ -7,7 +7,7 @@ const streamPipeline = promisify(pipeline);
 
 import { chromium } from "playwright-core";
 import { FileType } from "../models";
-import { logger } from "../utils/winston-logger";
+import { logger } from "../utils/winston-logger.js";
 
 const IG_URL_REELS = "https://igram.world/reels-downloader";
 const IG_URL_STORIES = "https://igram.world/story-saver";
@@ -45,7 +45,7 @@ async function getFileLocationFromIgram(url: string) {
     await page.waitForSelector(".modal__btn");
     logger.info(`Clicking modal button`);
     await page.click(".modal__btn");
-    
+
     logger.info(`Waiting for search result`);
     await page.waitForSelector("text=Search Result");
     logger.info(`Waiting for media content image`);
