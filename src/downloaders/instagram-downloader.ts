@@ -2,28 +2,33 @@ import fetch from "node-fetch";
 import { createWriteStream } from "fs";
 import { pipeline } from "stream";
 import { promisify } from "util";
-
-const streamPipeline = promisify(pipeline);
-
 import { chromium } from "playwright-core";
 import { FileType } from "../models";
 import { logger } from "../utils/winston-logger.js";
+import { Browser } from "playwright";
+
+const streamPipeline = promisify(pipeline);
 
 const IG_URL_REELS = "https://igram.world/reels-downloader";
 const IG_URL_STORIES = "https://igram.world/story-saver";
 
 async function getFileLocationFromIgram(url: string) {
   const igramUrl = url.includes("stories") ? IG_URL_STORIES : IG_URL_REELS;
-
-  const browser = await chromium.launch({
-    executablePath:
-      process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
-      "/usr/bin/chromium-browser",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-  const page = await browser.newPage();
+  let browser: Browser | null = null;
+  let href: string | null = null;
 
   try {
+    logger.info(`Launching browser`);
+    browser = await chromium.launch({
+      executablePath:
+        process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
+        "/usr/bin/chromium-browser",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      timeout: 10000,
+    });
+
+    const page = await browser.newPage();
+
     logger.info(`Navigating to ${igramUrl}`);
     await page.goto(igramUrl);
 
@@ -61,7 +66,7 @@ async function getFileLocationFromIgram(url: string) {
     logger.info(`Waiting for media content info`);
     await page.waitForSelector(".media-content__info");
 
-    const href = await page.evaluate(() => {
+    href = await page.evaluate(() => {
       const link = document.querySelector(".media-content__info a");
       return link ? link.getAttribute("href") : null;
     });
@@ -71,9 +76,18 @@ async function getFileLocationFromIgram(url: string) {
     }
 
     return href;
+  } catch (error) {
+    logger.error(`Error in getFileLocationFromIgram`, {
+      error: (error as Error).message,
+      stack: (error as Error).stack,
+    });
   } finally {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
   }
+
+  return href;
 }
 
 export async function igramApiDownloadVideo(
@@ -81,6 +95,10 @@ export async function igramApiDownloadVideo(
   outputPath: string
 ): Promise<{ fileType: FileType }> {
   const location = await getFileLocationFromIgram(url);
+  if (!location) {
+    throw new Error("Failed to get video location from igram");
+  }
+
   let format: FileType = "mp4";
   if (
     location.includes(".jpg") ||
