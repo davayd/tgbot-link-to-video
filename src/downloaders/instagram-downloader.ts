@@ -41,10 +41,14 @@ async function getFileLocationFromIgram(url: string) {
     logger.info(`Clicking search button`);
     await page.click(".search-form__button");
 
-    logger.info(`Waiting for modal button`);
-    await page.waitForSelector(".modal__btn");
-    logger.info(`Clicking modal button`);
-    await page.click(".modal__btn");
+    try {
+      logger.info(`Waiting for modal button`);
+      await page.waitForSelector(".modal__btn");
+      logger.info(`Clicking modal button`);
+      await page.click(".modal__btn");
+    } catch (error) {
+      logger.info("Modal button not found or not clickable. Skipping...");
+    }
 
     logger.info(`Waiting for search result`);
     await page.waitForSelector("text=Search Result");
