@@ -18,7 +18,7 @@ async function getFileLocationFromIgram(url: string) {
   let href: string | null = null;
 
   try {
-    logger.info(`Launching browser`);
+    logger.debug(`Launching browser`);
     browser = await chromium.launch({
       executablePath:
         process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
@@ -29,41 +29,41 @@ async function getFileLocationFromIgram(url: string) {
 
     const page = await browser.newPage();
 
-    logger.info(`Navigating to ${igramUrl}`);
+    logger.debug(`Navigating to ${igramUrl}`);
     await page.goto(igramUrl);
 
-    logger.info(`Setting viewport size to 1080x1024`);
+    logger.debug(`Setting viewport size to 1080x1024`);
     await page.setViewportSize({ width: 1080, height: 1024 });
 
     try {
-      logger.info(`Waiting for consent button`);
+      logger.debug(`Waiting for consent button`);
       await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent", {
         timeout: 5000,
       });
       await page.click(".fc-consent-root .fc-button.fc-cta-consent");
     } catch (error) {
-      logger.info("Consent button not found or not clickable. Skipping...");
+      logger.debug("Consent button not found or not clickable. Skipping...");
     }
 
-    logger.info(`Filling search form with ${url}`);
+    logger.debug(`Filling search form with ${url}`);
     await page.fill("#search-form-input", url);
-    logger.info(`Clicking search button`);
+    logger.debug(`Clicking search button`);
     await page.click(".search-form__button");
 
     try {
-      logger.info(`Waiting for modal button`);
+      logger.debug(`Waiting for modal button`);
       await page.waitForSelector(".modal__btn", { timeout: 2000 });
-      logger.info(`Clicking modal button`);
+      logger.debug(`Clicking modal button`);
       await page.click(".modal__btn");
     } catch (error) {
-      logger.info("Modal button not found or not clickable. Skipping...");
+      logger.debug("Modal button not found or not clickable. Skipping...");
     }
 
-    logger.info(`Waiting for search result`);
+    logger.debug(`Waiting for search result`);
     await page.waitForSelector("text=Search Result");
-    logger.info(`Waiting for media content image`);
+    logger.debug(`Waiting for media content image`);
     await page.waitForSelector(".media-content__image");
-    logger.info(`Waiting for media content info`);
+    logger.debug(`Waiting for media content info`);
     await page.waitForSelector(".media-content__info");
 
     href = await page.evaluate(() => {
@@ -77,7 +77,7 @@ async function getFileLocationFromIgram(url: string) {
 
     return href;
   } catch (error) {
-    logger.error(`Error in getFileLocationFromIgram`, {
+    logger.debug(`Error in getFileLocationFromIgram`, {
       error: (error as Error).message,
       stack: (error as Error).stack,
     });

@@ -36,7 +36,7 @@ export async function processAndSendVideo({
   };
 
   const logError = (context: string, error: unknown) => {
-    logger.error(`Error ${context}`, {
+    logger.debug(`Error ${context}`, {
       url: url,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -71,7 +71,7 @@ export async function processAndSendVideo({
 
     // Download the video
     let fileType: FileType = "mp4";
-    logger.info(`Downloader: ${downloader}`);
+    logger.debug(`Downloader: ${downloader}`);
     if (downloader === "ytdlp") {
       await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
       fileType = "mp4";
@@ -83,24 +83,24 @@ export async function processAndSendVideo({
       fileType = fileTypeFromDownloader;
     }
 
-    logger.info(`FileType: ${fileType}`);
+    logger.debug(`FileType: ${fileType}`);
 
     // Check if file exists (without knowing the extension)
     const files = await fs.readdir(fileDir);
     const downloadedFile = files.find((file) => file.startsWith(fileName));
-    logger.info(`DownloadedFile: ${downloadedFile}`);
+    logger.debug(`DownloadedFile: ${downloadedFile}`);
     if (!downloadedFile) {
       throw new Error("Не удалось скачать видео");
     }
 
     // File in format like /usr/src/app/video.mp4
     const filePath = path.join(fileDir, downloadedFile);
-    logger.info(`FilePath: ${filePath}`);
+    logger.debug(`FilePath: ${filePath}`);
 
     // Check file size
     const stats = await fs.stat(filePath);
     const fileSizeInMb = stats.size / (1024 * 1024);
-    logger.info(`FileSizeInMb: ${fileSizeInMb}`);
+    logger.debug(`FileSizeInMb: ${fileSizeInMb}`);
     if (fileSizeInMb > 100) {
       throw new Error("File size exceeds 100MB limit");
     }

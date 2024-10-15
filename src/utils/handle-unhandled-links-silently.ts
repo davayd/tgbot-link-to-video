@@ -23,7 +23,7 @@ export async function handleUnhandledLinksSilently(
         originalMessageId: link.originalMessageId,
       });
     } catch (error: any) {
-      logger.error(`Error processing video for URL: ${link.url}`, {
+      logger.debug(`Error processing video for URL: ${link.url}`, {
         error: error.message,
         stack: error.stack,
       });

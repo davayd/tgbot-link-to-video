@@ -59,7 +59,7 @@ bot.onText(/\/retry/, async (msg) => {
       });
     }
   } catch (error) {
-    logger.error("Error in /retry command", {
+    logger.debug("Error in /retry command", {
       error: (error as Error).message,
       stack: (error as Error).stack,
     });
@@ -75,7 +75,7 @@ bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
   const originalMessageId = msg.message_id;
   const url = msg.text;
-  logger.info(`Received message: ${url}, chatId: ${chatId}, originalMessageId: ${originalMessageId}`);
+  logger.debug(`Received message: ${url}, chatId: ${chatId}, originalMessageId: ${originalMessageId}`);
 
   if (!url || !isValidUrl(url)) {
     return;
@@ -93,13 +93,13 @@ bot.on("text", async (msg) => {
 
 // Error handler for polling errors
 bot.on("polling_error", (error) => {
-  logger.error("Polling error", {
+  logger.debug("Polling error", {
     error: (error as Error).message,
     stack: (error as Error).stack,
   });
 });
 
-logger.info("Bot is running...");
+logger.debug("Bot is running...");
 
 // Initialize the database and load unhandled links when the application starts
 connectToDatabase()
@@ -110,7 +110,7 @@ connectToDatabase()
       try {
         await handleUnhandledLinksSilently(bot);
       } catch (error) {
-        logger.error("Error in scheduled retry:", {
+        logger.debug("Error in scheduled retry:", {
           error: (error as Error).message,
           stack: (error as Error).stack,
         });
@@ -118,7 +118,7 @@ connectToDatabase()
     });
   })
   .catch((error) => {
-    logger.error("Error connecting to Redis", {
+    logger.debug("Error connecting to Redis", {
       error: error.message,
       stack: error.stack,
     });

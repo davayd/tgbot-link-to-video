@@ -7,11 +7,11 @@ import { saveUnhandledLink } from "./database.js";
 const queue = new PQueue({ concurrency: 1 });
 
 queue.on("add", () => {
-  logger.info(`Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`);
+  logger.debug(`Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`);
 });
 
 queue.on("next", () => {
-  logger.info(
+  logger.debug(
     `Task is completed.  Size: ${queue.size}  Pending: ${queue.pending}`
   );
 });
@@ -37,13 +37,13 @@ export async function addToVideoQueue(
           context.originalMessageId
         );
       } catch (error) {
-        logger.error(`Error saving unhandled link: ${error}`, {
+        logger.debug(`Error saving unhandled link: ${error}`, {
           url: context.url,
           chatId: context.chatId,
           username: context.username,
         });
       }
-      logger.error(`Error processing video: ${error}`, {
+      logger.debug(`Error processing video: ${error}`, {
         url: context.url,
         chatId: context.chatId,
         username: context.username,
