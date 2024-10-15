@@ -1,34 +1,6 @@
 # Use an official Node.js runtime as the base image
 FROM node:22-alpine
 
-# Устанавливаем зависимости для Playwright
-RUN apk add --no-cache python3 make g++ jpeg-dev libpng-dev cairo-dev pango-dev giflib-dev
-
-# Устанавливаем Playwright и его зависимости
-RUN npm install -g playwright --with-deps
-RUN playwright install chromium
-RUN npx playwright install 
-# RUN apk add --no-cache \
-#     ffmpeg \
-#     chromium \
-#     font-noto-emoji \
-#     font-noto-cjk \
-#     ttf-freefont \
-#     nss \
-#     freetype \
-#     harfbuzz \
-#     ca-certificates
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
-
-# Set the working directory in the container
-WORKDIR /usr/src/app
-
-# Copy package.json
-COPY package*.json ./
-COPY tsconfig.json ./
-COPY src ./src
-
 # Install system dependencies
 RUN apk update && apk add --no-cache \
     alsa-lib \
@@ -59,22 +31,43 @@ RUN apk update && apk add --no-cache \
     libxrandr \
     libxrender \
     libxshmfence \
-    libxtst
-
-RUN apk update && apk add --no-cache \
+    libxtst \
     ffmpeg \
     python3 \
-    py3-pip
-
-RUN apk add --no-cache py3-setuptools
+    py3-pip \ 
+    py3-setuptools
 
 # Install yt-dlp in a virtual environment
 RUN python3 -m venv /opt/venv \
     && . /opt/venv/bin/activate \
     && pip install --no-cache-dir --upgrade yt-dlp
 
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Copy package.json
+COPY package*.json ./
+COPY tsconfig.json ./
+COPY src ./src
+
 # Install project dependencies
 RUN npm install
+
+# Install Playwright and its dependencies
+RUN npm install -g playwright
+RUN playwright install chromium
+# RUN apk add --no-cache \
+#     ffmpeg \
+#     chromium \
+#     font-noto-emoji \
+#     font-noto-cjk \
+#     ttf-freefont \
+#     nss \
+#     freetype \
+#     harfbuzz \
+#     ca-certificates
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
 
 # Build the application
 RUN npm run build
