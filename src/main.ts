@@ -71,10 +71,10 @@ bot.onText(/\/retry/, async (msg) => {
 });
 
 // Inputs from instagram and youtube
-bot.onText(/(.+)/, async (msg, match) => {
+bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
   const originalMessageId = msg.message_id;
-  const url = match?.[1];
+  const url = msg.text;
 
   if (!url || !isValidUrl(url)) {
     return;
