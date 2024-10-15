@@ -21,10 +21,9 @@ async function getFileLocationFromIgram(url: string) {
     logger.debug(`Launching browser`);
     browser = await chromium.launch({
       executablePath:
-        process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
+        process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
         "/usr/bin/chromium-browser",
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      timeout: 10000,
     });
 
     const page = await browser.newPage();
