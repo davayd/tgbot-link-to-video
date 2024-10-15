@@ -6,7 +6,7 @@ RUN apk add --no-cache python3 make g++ jpeg-dev libpng-dev cairo-dev pango-dev 
 
 # Устанавливаем Playwright и его зависимости
 RUN npm install -g playwright
-RUN playwright install chromium
+RUN npx playwright install chromium
 RUN apk add --no-cache \
     ffmpeg \
     chromium \
@@ -19,25 +19,8 @@ RUN apk add --no-cache \
     ca-certificates
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-# Install Playwright dependencies
-RUN apk add --no-cache \
-    ffmpeg \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    nodejs \
-    yarn
-
-# Set environment variables for Playwright
 ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-
-# Install Playwright
-RUN yarn add playwright-core
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
