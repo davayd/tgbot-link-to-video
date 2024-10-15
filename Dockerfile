@@ -5,22 +5,20 @@ FROM node:22-alpine
 RUN apk add --no-cache python3 make g++ jpeg-dev libpng-dev cairo-dev pango-dev giflib-dev
 
 # Устанавливаем Playwright и его зависимости
-RUN npm install -g playwright
-RUN npx playwright install chromium
-RUN apk add --no-cache \
-    ffmpeg \
-    chromium \
-    font-noto-emoji \
-    font-noto-cjk \
-    ttf-freefont \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+RUN npm install -g playwright --with-deps
+RUN playwright install chromium
+# RUN apk add --no-cache \
+#     ffmpeg \
+#     chromium \
+#     font-noto-emoji \
+#     font-noto-cjk \
+#     ttf-freefont \
+#     nss \
+#     freetype \
+#     harfbuzz \
+#     ca-certificates
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
