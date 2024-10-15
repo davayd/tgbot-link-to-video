@@ -7,6 +7,7 @@ RUN apk add --no-cache python3 make g++ jpeg-dev libpng-dev cairo-dev pango-dev 
 # Устанавливаем Playwright и его зависимости
 RUN npm install -g playwright --with-deps
 RUN playwright install chromium
+RUN npx playwright install 
 # RUN apk add --no-cache \
 #     ffmpeg \
 #     chromium \
