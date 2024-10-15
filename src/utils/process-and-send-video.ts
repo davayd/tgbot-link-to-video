@@ -58,9 +58,6 @@ export async function processAndSendVideo({
   };
 
   try {
-    // Update last_processed_at at the start of processing
-    await db.updateLastProcessedAt(url);
-
     await sendStatus(`🔄 Начинаем скачивание...`);
 
     // Generate a safe filename

@@ -75,6 +75,7 @@ bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
   const originalMessageId = msg.message_id;
   const url = msg.text;
+  logger.info(`Received message: ${url}, chatId: ${chatId}, originalMessageId: ${originalMessageId}`);
 
   if (!url || !isValidUrl(url)) {
     return;

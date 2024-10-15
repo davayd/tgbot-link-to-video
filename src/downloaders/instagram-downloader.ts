@@ -16,8 +16,10 @@ async function getFileLocationFromIgram(url: string) {
   const igramUrl = url.includes("stories") ? IG_URL_STORIES : IG_URL_REELS;
 
   const browser = await chromium.launch({
-    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    executablePath:
+      process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
+      "/usr/bin/chromium-browser",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const page = await browser.newPage();
 
@@ -30,7 +32,9 @@ async function getFileLocationFromIgram(url: string) {
 
     try {
       logger.info(`Waiting for consent button`);
-      await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent", { timeout: 5000 });
+      await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent", {
+        timeout: 5000,
+      });
       await page.click(".fc-consent-root .fc-button.fc-cta-consent");
     } catch (error) {
       logger.info("Consent button not found or not clickable. Skipping...");
@@ -43,7 +47,7 @@ async function getFileLocationFromIgram(url: string) {
 
     try {
       logger.info(`Waiting for modal button`);
-      await page.waitForSelector(".modal__btn");
+      await page.waitForSelector(".modal__btn", { timeout: 2000 });
       logger.info(`Clicking modal button`);
       await page.click(".modal__btn");
     } catch (error) {

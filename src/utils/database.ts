@@ -44,11 +44,3 @@ export async function loadUnhandledLinks() {
 export async function removeUnhandledLink(url: string) {
   await client.del(`unhandled:${url}`);
 }
-
-export async function updateLastProcessedAt(url: string) {
-  await client.hSet(
-    `unhandled:${url}`,
-    "lastProcessedAt",
-    new Date().toISOString()
-  );
-}
