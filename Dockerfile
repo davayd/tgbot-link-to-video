@@ -54,17 +54,18 @@ COPY src ./src
 RUN npm install
 
 # Install Playwright and its dependencies
+RUN npm install -g playwright
+RUN playwright install chromium
 RUN apk add --no-cache \
-ffmpeg \
-chromium \
-font-noto-emoji \
-font-noto-cjk \
-ttf-freefont \
-nss \
-freetype \
-harfbuzz \
-ca-certificates
-RUN npm install playwright-core
+    ffmpeg \
+    chromium \
+    font-noto-emoji \
+    font-noto-cjk \
+    ttf-freefont \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates
 
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
