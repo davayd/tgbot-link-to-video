@@ -35,13 +35,16 @@ docker run -d --name telegram-video-bot -e BOT_TOKEN=your_bot_token_here telegra
 
 ### Docker Compose
 
-- Prepare `.env` file with variables:
+- You have to prepare environment variables by one of the following ways:
+
+1. Create `.env` file in the root of the project with the following variables:
 
 ```bash
 BOT_TOKEN=your_bot_token_here # required
-REDIS_URL=redis://redis:6379 # optional, default: redis://redis:6379
 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser # optional, default: /usr/bin/chromium-browser
 ```
+
+2. Change variables in `docker-compose.yml` file.
 
 - Run the bot using Docker Compose:
 
