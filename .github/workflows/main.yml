@@ -26,11 +26,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Copy new build to app directory
-        run: docker cp ./dist/. tgbot-link-to-video-app-1:/usr/src/app/dist
-
-      - name: Restart PM2
-        run: docker restart tgbot-link-to-video-app-1
+      - name: Pull & Redeploy
+        run: docker compose pull && docker compose up --build -d
 
       - name: Clean up
         run: rm -rf ./dist

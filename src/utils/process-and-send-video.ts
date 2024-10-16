@@ -67,7 +67,7 @@ export async function processAndSendVideo({
       .replace(/\s/g, "");
     const fileDir = dirname(fileURLToPath(import.meta.url));
 
-    await sendStatus(`🔄 Скачиваем: ${fileName}`);
+    await sendStatus(`🔄 Скачиваем...`);
 
     // Download the video
     let fileType: FileType = "mp4";
@@ -111,11 +111,6 @@ export async function processAndSendVideo({
     await fs.unlink(filePath);
   } catch (error: unknown) {
     logError("processing video", error);
-    if (!silent) {
-      // await sendErrorMessage(
-      //   `😿 Похоже, что произошла ошибка при скачивании видео-мема, попробуй позже команду /retry чтобы повторить загрузку 🤞.`
-      // );
-    }
   } finally {
     if (statusMessage && !silent) {
       await bot.deleteMessage(chatId, statusMessage.message_id);

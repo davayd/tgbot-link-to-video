@@ -16,14 +16,18 @@ async function getFileLocationFromIgram(url: string) {
   const igramUrl = url.includes("stories") ? IG_URL_STORIES : IG_URL_REELS;
   let browser: Browser | null = null;
   let href: string | null = null;
+  const executablePath =
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
+    "/usr/bin/chromium-browser";
+
+  logger.debug(`Executable path: ${executablePath}`);
 
   try {
     logger.debug(`Launching browser`);
     browser = await chromium.launch({
-      // executablePath:
-      //   process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
-      //   "/usr/bin/chromium-browser",
+      executablePath,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
     });
 
     const page = await browser.newPage();

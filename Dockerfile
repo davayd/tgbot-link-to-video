@@ -2,22 +2,10 @@
 FROM node:22-alpine
 
 # Install system dependencies
+# https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/dist_package_versions.json
+# We download external chromium and not use playwright one to avoid issues with executable path
+# TODO: Playwright downloads own chromium (in /root/.cache/ms-playwright/... directory) which does not have ./chromium-laucher.sh
 RUN apk update && apk add --no-cache \
-    alsa-lib \
-    at-spi2-core \
-    musl \
-    cairo \
-    cups-libs \
-    dbus-libs \
-    libdrm \
-    expat \
-    mesa-gbm \
-    glib \
-    nspr \
-    nss \
-    pango \
-    libstdc++ \
-    eudev-libs \
     libuuid \
     libx11 \
     libxcb \
@@ -32,10 +20,15 @@ RUN apk update && apk add --no-cache \
     libxrender \
     libxshmfence \
     libxtst \
+    libxscrnsaver \
+    libxft \
     ffmpeg \
     python3 \
     py3-pip \ 
-    py3-setuptools
+    py3-setuptools \
+    libxinerama \
+    chromium \
+    ca-certificates
 
 # Install yt-dlp in a virtual environment
 RUN python3 -m venv /opt/venv \
@@ -52,24 +45,6 @@ COPY src ./src
 
 # Install project dependencies
 RUN npm install
-
-# Install Playwright and its dependencies
-RUN npm install -g playwright
-RUN playwright install chromium
-RUN apk add --no-cache \
-    ffmpeg \
-    chromium \
-    font-noto-emoji \
-    font-noto-cjk \
-    ttf-freefont \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates
-
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin
 
 # Build the application
 RUN npm run build
