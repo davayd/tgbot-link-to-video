@@ -2,7 +2,7 @@ import { createClient } from "redis";
 import { logger } from "./winston-logger.js";
 
 const client = createClient({
-  url: process.env.REDIS_URL
+  url: process.env.REDIS_URL ?? "redis://redis:6379",
 });
 
 client.on("error", (err) => logger.debug("Redis Client Error", err));

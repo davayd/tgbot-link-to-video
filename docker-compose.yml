@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL}
       - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}
     depends_on:
       - redis

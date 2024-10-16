@@ -32,3 +32,19 @@ To build and run the bot using Docker, use the following commands:
 docker build -t telegram-video-bot .
 docker run -d --name telegram-video-bot -e BOT_TOKEN=your_bot_token_here telegram-video-bot
 ```
+
+### Docker Compose
+
+- Prepare `.env` file with variables:
+
+```bash
+BOT_TOKEN=your_bot_token_here # required
+REDIS_URL=redis://redis:6379 # optional, default: redis://redis:6379
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser # optional, default: /usr/bin/chromium-browser
+```
+
+- Run the bot using Docker Compose:
+
+```bash
+docker compose up --build -d
+```
