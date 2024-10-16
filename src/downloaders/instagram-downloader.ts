@@ -17,7 +17,7 @@ async function getFileLocationFromIgram(url: string) {
   let browser: Browser | null = null;
   let href: string | null = null;
   const executablePath =
-    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
     "/usr/bin/chromium-browser";
 
   logger.debug(`Executable path: ${executablePath}`);

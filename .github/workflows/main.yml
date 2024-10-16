@@ -23,15 +23,24 @@ jobs:
       - name: Create .env file
         run: |
           echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> .env
-  
+          echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ secrets.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}" >> .env
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build
         run: npm run build
 
-      - name: Pull & Redeploy
-        run: docker compose pull && docker compose up --build -d
+      - name: Pull latest images
+        run: docker compose pull
+
+      - name: Build and start containers
+        run: |
+          docker compose build
+          docker compose up -d
+
+      - name: Check containers status
+        run: docker compose ps
 
       - name: Clean up
         run: rm -rf ./dist
