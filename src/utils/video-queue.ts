@@ -7,7 +7,9 @@ import { saveUnhandledLink } from "./database.js";
 const queue = new PQueue({ concurrency: 1 });
 
 queue.on("add", () => {
-  logger.debug(`Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`);
+  logger.debug(
+    `Task is added.  Size: ${queue.size}  Pending: ${queue.pending}`
+  );
 });
 
 queue.on("next", () => {
@@ -22,6 +24,7 @@ export async function addToVideoQueue(
   await queue.add(async () => {
     try {
       await processAndSendVideo(context);
+
       if (context.chatId && context.originalMessageId) {
         await context.bot.deleteMessage(
           context.chatId,

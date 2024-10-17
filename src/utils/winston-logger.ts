@@ -1,5 +1,7 @@
 import winston from "winston";
 
+const LOG_INFO = process.env.LOG_INFO || false;
+
 const logger = winston.createLogger({
   level: "debug",
   format: winston.format.combine(
@@ -12,4 +14,4 @@ const logger = winston.createLogger({
   ],
 });
 
-export { logger };
+export { logger, LOG_INFO };
