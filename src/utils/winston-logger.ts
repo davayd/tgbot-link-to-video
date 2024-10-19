@@ -8,11 +8,7 @@ const timezoned = () => {
 };
 
 const logger = winston.createLogger({
-  levels: {
-    error: 0,
-    debug: 1,
-    info: 2,
-  },
+  level: 'silly',
   format: winston.format.combine(
     winston.format.timestamp({
       format: timezoned,

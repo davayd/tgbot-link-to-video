@@ -73,11 +73,9 @@ export async function addBotListeners(bot: TelegramBot) {
       return;
     }
 
-    logger.info("Received message", {
-      chatId,
-      url,
-      originalMessageId,
-    });
+    logger.info(
+      `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${username}`
+    );
 
     addToVideoQueue({
       bot,
