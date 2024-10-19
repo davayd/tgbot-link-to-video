@@ -4,7 +4,7 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import { chromium } from "playwright-core";
 import { FileType } from "../models";
-import { logger, LOG_INFO } from "../utils/winston-logger.js";
+import { logger, LOG_DEBUG } from "../utils/winston-logger.js";
 import { Browser } from "playwright";
 
 const streamPipeline = promisify(pipeline);
@@ -20,10 +20,10 @@ async function getFileLocationFromIgram(url: string) {
     process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
     "/usr/bin/chromium-browser";
 
-  LOG_INFO && logger.debug(`Executable path: ${executablePath}`);
+  LOG_DEBUG && logger.debug(`Executable path: ${executablePath}`);
 
   try {
-    LOG_INFO && logger.debug(`Launching browser`);
+    LOG_DEBUG && logger.debug(`Launching browser`);
     browser = await chromium.launch({
       executablePath,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -32,43 +32,43 @@ async function getFileLocationFromIgram(url: string) {
 
     const page = await browser.newPage();
 
-    LOG_INFO && logger.debug(`Navigating to ${igramUrl}`);
+    LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
     await page.goto(igramUrl);
 
-    LOG_INFO && logger.debug(`Setting viewport size to 1080x1024`);
+    LOG_DEBUG && logger.debug(`Setting viewport size to 1080x1024`);
     await page.setViewportSize({ width: 1080, height: 1024 });
 
     try {
-      LOG_INFO && logger.debug(`Waiting for consent button`);
+      LOG_DEBUG && logger.debug(`Waiting for consent button`);
       await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent", {
         timeout: 5000,
       });
       await page.click(".fc-consent-root .fc-button.fc-cta-consent");
     } catch (error) {
-      LOG_INFO &&
+      LOG_DEBUG &&
         logger.debug("Consent button not found or not clickable. Skipping...");
     }
 
-    LOG_INFO && logger.debug(`Filling search form with ${url}`);
+    LOG_DEBUG && logger.debug(`Filling search form with ${url}`);
     await page.fill("#search-form-input", url);
-    LOG_INFO && logger.debug(`Clicking search button`);
+    LOG_DEBUG && logger.debug(`Clicking search button`);
     await page.click(".search-form__button");
 
     try {
-      LOG_INFO && logger.debug(`Waiting for modal button`);
+      LOG_DEBUG && logger.debug(`Waiting for modal button`);
       await page.waitForSelector(".modal__btn", { timeout: 2000 });
-      LOG_INFO && logger.debug(`Clicking modal button`);
+      LOG_DEBUG && logger.debug(`Clicking modal button`);
       await page.click(".modal__btn");
     } catch (error) {
-      LOG_INFO &&
+      LOG_DEBUG &&
         logger.debug("Modal button not found or not clickable. Skipping...");
     }
 
-    LOG_INFO && logger.debug(`Waiting for search result`);
+    LOG_DEBUG && logger.debug(`Waiting for search result`);
     await page.waitForSelector("text=Search Result");
-    LOG_INFO && logger.debug(`Waiting for media content image`);
+    LOG_DEBUG && logger.debug(`Waiting for media content image`);
     await page.waitForSelector(".media-content__image");
-    LOG_INFO && logger.debug(`Waiting for media content info`);
+    LOG_DEBUG && logger.debug(`Waiting for media content info`);
     await page.waitForSelector(".media-content__info");
 
     href = await page.evaluate(() => {
@@ -82,10 +82,7 @@ async function getFileLocationFromIgram(url: string) {
 
     return href;
   } catch (error) {
-    logger.debug(`Error in getFileLocationFromIgram`, {
-      error: (error as Error).message,
-      stack: (error as Error).stack,
-    });
+    logger.error(`Error in getFileLocationFromIgram: ${error}`);
   } finally {
     if (browser) {
       await browser.close();

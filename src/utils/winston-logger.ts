@@ -1,17 +1,30 @@
 import winston from "winston";
+import moment from "moment-timezone";
 
-const LOG_INFO = process.env.LOG_INFO || false;
+const LOG_DEBUG = process.env.LOG_DEBUG || false;
+
+const timezoned = () => {
+  return moment().tz("Europe/Warsaw").format("DD.MM.YYYY HH:mm:ss");
+};
 
 const logger = winston.createLogger({
-  level: "debug",
+  levels: {
+    error: 0,
+    debug: 1,
+    info: 2,
+  },
   format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
+    winston.format.timestamp({
+      format: timezoned,
+    }),
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    })
   ),
   transports: [
     new winston.transports.File({ filename: "debug.log" }),
-    new winston.transports.Console({ format: winston.format.simple() }),
+    new winston.transports.Console(),
   ],
 });
 
-export { logger, LOG_INFO };
+export { logger, LOG_DEBUG };

@@ -1,0 +1,1 @@
+export const VALID_CHAT_IDS = [-1002476906937, 389685263];

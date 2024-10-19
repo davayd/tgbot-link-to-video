@@ -5,14 +5,14 @@ const client = createClient({
   url: process.env.REDIS_URL ?? "redis://redis:6379",
 });
 
-client.on("error", (err) => logger.debug("Redis Client Error", err));
+client.on("error", (err) => logger.error("Redis Client Error", err));
 
-export async function connectToDatabase() {
+export async function DB_connectToDatabase() {
   await client.connect();
-  logger.debug("Connected to Redis");
+  logger.info("Connected to Redis");
 }
 
-export async function saveUnhandledLink(
+export async function DB_saveUnhandledLink(
   url: string,
   chatId: number | string,
   username: string,
@@ -25,7 +25,7 @@ export async function saveUnhandledLink(
   });
 }
 
-export async function loadUnhandledLinks() {
+export async function DB_loadUnhandledLinks() {
   const keys = await client.keys("unhandled:*");
   const links = await Promise.all(
     keys.map(async (key) => {
@@ -41,6 +41,6 @@ export async function loadUnhandledLinks() {
   return links;
 }
 
-export async function removeUnhandledLink(url: string) {
+export async function DB_removeUnhandledLink(url: string) {
   await client.del(`unhandled:${url}`);
 }
