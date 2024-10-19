@@ -15,6 +15,14 @@ on:
         options:
           - true
           - false
+      FORCE_CACHE:
+        description: 'Force rebuild without cache'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - true
+          - false
 
 jobs:
   build-and-deploy:
@@ -47,7 +55,11 @@ jobs:
 
       - name: Build and start containers
         run: |
-          docker compose build
+           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.FORCE_CACHE }}" == "true" ]]; then
+            docker compose build --no-cache
+          else
+            docker compose build
+          fi
           docker compose up -d
 
       - name: Check containers status
