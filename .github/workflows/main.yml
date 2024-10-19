@@ -8,17 +8,17 @@ on:
   workflow_dispatch:
     inputs:
       USE_LOG_DEBUG:
-        description: 'Enable debug logs'
+        description: "Enable debug logs"
         required: true
-        default: 'false'
+        default: "false"
         type: choice
         options:
           - true
           - false
       FORCE_CACHE:
-        description: 'Force rebuild without cache'
+        description: "Force rebuild without cache"
         required: true
-        default: 'false'
+        default: "false"
         type: choice
         options:
           - true
@@ -55,7 +55,7 @@ jobs:
 
       - name: Build and start containers
         run: |
-           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.FORCE_CACHE }}" == "true" ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.FORCE_CACHE }}" == "true" ]]; then
             docker compose build --no-cache
           else
             docker compose build
