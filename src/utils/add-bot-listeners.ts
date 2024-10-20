@@ -8,17 +8,17 @@ import { VALID_CHAT_IDS } from "../constants.js";
 export async function addBotListeners(bot: TelegramBot) {
   // Retry command
   bot.onText(/\/retry/, async (msg) => {
-    const chatId = msg.chat.id;
-    const originalMessageId = msg.message_id;
-
-    const statusMessage = await bot.sendMessage(
-      chatId,
-      "🔄 Получение последних ссылок на супер-мемы..."
-    );
-
-    const unhandledLinks = await DB_loadUnhandledLinks();
-
     try {
+      const chatId = msg.chat.id;
+      const originalMessageId = msg.message_id;
+
+      const statusMessage = await bot.sendMessage(
+        chatId,
+        "🔄 Получение последних ссылок на супер-мемы..."
+      );
+
+      const unhandledLinks = await DB_loadUnhandledLinks();
+
       if (unhandledLinks.length === 0) {
         await bot.editMessageText(
           "Команда /retry не найшла необработанных ссылок на супер-мемы 🥲",
@@ -50,40 +50,44 @@ export async function addBotListeners(bot: TelegramBot) {
           originalMessageId: link.originalMessageId,
         });
       }
-    } catch (error) {
-      logger.error(`Error in /retry command: ${error}`);
-    } finally {
-      if (statusMessage) {
+
+      if (statusMessage && chatId) {
         await bot.deleteMessage(chatId, statusMessage.message_id);
       }
+    } catch (error: any) {
+      logger.error(`Error in /retry command: ${error.stack}`);
     }
   });
 
   // Inputs from instagram and youtube
   bot.on("text", async (msg) => {
-    const chatId = msg.chat.id;
-    const originalMessageId = msg.message_id;
-    const url = msg.text;
-    const username = msg.from?.username || "unknown";
+    try {
+      const chatId = msg.chat.id;
+      const originalMessageId = msg.message_id;
+      const url = msg.text;
+      const username = msg.from?.username || "unknown";
 
-    if (!url || !isValidUrl(url)) {
-      return;
+      if (!url || !isValidUrl(url)) {
+        return;
+      }
+      if (!VALID_CHAT_IDS.includes(chatId)) {
+        return;
+      }
+
+      logger.info(
+        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${username}`
+      );
+
+      addToVideoQueue({
+        bot,
+        url,
+        chatId,
+        username,
+        downloader: getDownloaderType(url),
+        originalMessageId,
+      });
+    } catch (error: any) {
+      logger.error(`Error in onText listener: ${error.stack}`);
     }
-    if (!VALID_CHAT_IDS.includes(chatId)) {
-      return;
-    }
-
-    logger.info(
-      `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${username}`
-    );
-
-    addToVideoQueue({
-      bot,
-      url,
-      chatId,
-      username,
-      downloader: getDownloaderType(url),
-      originalMessageId,
-    });
   });
 }

@@ -78,7 +78,7 @@ export async function processAndSendVideo({
     const downloadedFile = files.find((file) => file.startsWith(fileName));
     LOG_DEBUG && logger.debug(`DownloadedFile: ${downloadedFile}`);
     if (!downloadedFile) {
-      throw new Error("Не удалось скачать видео");
+      throw new Error("Failed to download video");
     }
 
     // File in format like /usr/src/app/video.mp4
@@ -98,14 +98,15 @@ export async function processAndSendVideo({
 
     await DB_removeUnhandledLink(url);
     await fs.unlink(filePath);
-  } catch (error: unknown) {
-    logger.error(`Error in processAndSendVideo: ${error}`);
+
+    if (chatId && originalMessageId) {
+      await bot.deleteMessage(chatId, originalMessageId);
+    }
+  } catch (error: any) {
+    logger.error(`Error in processAndSendVideo: ${error.message} ${error.stack}`);
   } finally {
     if (statusMessage) {
       await bot.deleteMessage(chatId, statusMessage.message_id);
-    }
-    if (chatId && originalMessageId) {
-      await bot.deleteMessage(chatId, originalMessageId);
     }
   }
 }
