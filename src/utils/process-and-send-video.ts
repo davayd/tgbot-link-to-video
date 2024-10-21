@@ -38,7 +38,7 @@ export async function processAndSendVideo({
       .toString(36)
       .substring(2, 22)
       .replace(/\s/g, "");
-    const fileDir = dirname(fileURLToPath(import.meta.url));
+    const fileDir = process.cwd();
 
     // Download the video
     let fileType: FileType = "mp4";
