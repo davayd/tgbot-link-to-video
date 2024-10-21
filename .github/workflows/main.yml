@@ -41,8 +41,8 @@ jobs:
       - name: Create .env file
         run: |
           echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> .env
-          echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ secrets.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}" >> .env
-          echo "LOG_DEBUG=${{ inputs.USE_LOG_DEBUG }}" >> .env
+          echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ vars.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}" >> .env
+          echo "LOG_DEBUG=${{ inputs.USE_LOG_DEBUG || 'true' }}" >> .env
 
       - name: Install dependencies
         run: npm ci

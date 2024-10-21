@@ -1,6 +1,5 @@
 import path, { dirname } from "path";
 import fs from "fs/promises";
-import TelegramBot from "node-telegram-bot-api";
 import { fileURLToPath } from "url";
 import { logger } from "./winston-logger.js";
 import { igramApiDownloadVideo } from "../downloaders/instagram-downloader.js";
