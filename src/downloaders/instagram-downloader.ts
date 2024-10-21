@@ -23,7 +23,7 @@ async function getFileLocationFromIgram(url: string) {
 
   const browserOptions: LaunchOptions = {
     ...(PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
-      PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+      executablePath: PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
     }),
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: true,
