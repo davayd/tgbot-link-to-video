@@ -6,7 +6,6 @@ import { logger } from "./winston-logger.js";
 import { igramApiDownloadVideo } from "../downloaders/instagram-downloader.js";
 import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { FileType, ProcessVideoContext } from "../models.js";
-import { DB_removeUnhandledLink, DB_saveUnhandledLink } from "./database.js";
 import { LOG_DEBUG } from "../constants.js";
 
 export async function processAndSendVideo({
@@ -35,8 +34,6 @@ export async function processAndSendVideo({
   };
 
   try {
-    await DB_saveUnhandledLink(url, chatId, username, originalMessageId);
-
     // Generate a safe filename
     const fileName = Math.random()
       .toString(36)
@@ -82,7 +79,6 @@ export async function processAndSendVideo({
 
     await sendFile(filePath, fileType);
     await fs.unlink(filePath);
-    await DB_removeUnhandledLink(url);
   } catch (error: any) {
     await bot.sendMessage(chatId, `${error.message}`, {
       reply_to_message_id: originalMessageId,

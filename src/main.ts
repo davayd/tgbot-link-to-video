@@ -1,11 +1,6 @@
 import "dotenv/config";
 import TelegramBot from "node-telegram-bot-api";
-import {
-  handleUnhandledLinksSilently,
-  addBotListeners,
-  logger,
-  DB_connectToDatabase,
-} from "./utils/index.js";
+import { addBotListeners, logger } from "./utils/index.js";
 import { BOT_TOKEN } from "./constants.js";
 
 if (!BOT_TOKEN) {
@@ -18,8 +13,6 @@ try {
   bot.on("polling_error", (error) => {
     logger.error(`Polling error: ${error.stack}`);
   });
-  await DB_connectToDatabase();
-  await handleUnhandledLinksSilently(bot);
   await addBotListeners(bot);
 
   logger.info("Bot is running...");

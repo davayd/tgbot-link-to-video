@@ -87,7 +87,7 @@ async function getFileLocationFromIgram(url: string) {
       return errorMessage;
     });
     logger.error(`The service IGRAM returned an error: ${errorMessage}`);
-    throw new Error(`Произошла ошибка в сервисе: ${errorMessage}`);
+    throw new Error(`Произошла ошибка в сервисе IGRAM: ${errorMessage}`);
   }
 
   LOG_DEBUG && logger.debug(`Getting href from igram`);
