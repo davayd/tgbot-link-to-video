@@ -31,6 +31,7 @@ jobs:
           echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ vars.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}" >> .env
           echo "LOG_DEBUG=true" >> .env
           echo "VALID_CHAT_IDS=${{ secrets.VALID_CHAT_IDS }}" >> .env
+          cp .env ${{ github.workspace }}/.env
 
       - name: Install dependencies
         run: npm ci
