@@ -3,14 +3,6 @@ name: CI/CD
 on:
   workflow_dispatch:
     inputs:
-      USE_LOG_DEBUG:
-        description: "Enable debug logs"
-        required: true
-        default: "true"
-        type: choice
-        options:
-          - true
-          - false
       FORCE_CACHE:
         description: "Force rebuild without cache"
         required: true
@@ -37,7 +29,7 @@ jobs:
         run: |
           echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> .env
           echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ vars.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}" >> .env
-          echo "LOG_DEBUG=${{ inputs.USE_LOG_DEBUG || 'true' }}" >> .env
+          echo "LOG_DEBUG=true" >> .env
 
       - name: Install dependencies
         run: npm ci

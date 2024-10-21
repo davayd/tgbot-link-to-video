@@ -7,7 +7,6 @@ export interface ProcessVideoContext {
   url: string;
   chatId: number | string;
   username: string;
-  silent?: boolean;
   downloader: DownloaderType;
   originalMessageId: number;
 }
