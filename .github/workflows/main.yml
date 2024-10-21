@@ -10,7 +10,7 @@ on:
       USE_LOG_DEBUG:
         description: "Enable debug logs"
         required: true
-        default: "false"
+        default: "true"
         type: choice
         options:
           - true
