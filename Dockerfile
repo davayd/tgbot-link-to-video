@@ -42,6 +42,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY tsconfig.json ./
 COPY src ./src
+COPY .env .
 
 # Install project dependencies
 RUN npm install
