@@ -6,17 +6,17 @@ import {
   logger,
   DB_connectToDatabase,
 } from "./utils/index.js";
+import { BOT_TOKEN } from "./constants.js";
 
-const token = process.env.BOT_TOKEN;
-if (!token) {
-  logger.error("BOT_TOKEN environment variable is not set");
+if (!BOT_TOKEN) {
+  logger.error(`BOT_TOKEN environment variable is not set`);
   process.exit(1);
 }
 
 try {
-  const bot = new TelegramBot(token, { polling: true });
+  const bot = new TelegramBot(BOT_TOKEN, { polling: true });
   bot.on("polling_error", (error) => {
-    logger.error(`Polling error: ${error}`);
+    logger.error(`Polling error: ${error.stack}`);
   });
   await DB_connectToDatabase();
   await handleUnhandledLinksSilently(bot);
@@ -24,6 +24,6 @@ try {
 
   logger.info("Bot is running...");
 } catch (error: any) {
-  logger.error(`Error initializing bot: ${error}`);
+  logger.error(`Error initializing bot: ${error.stack}`);
   process.exit(1);
 }

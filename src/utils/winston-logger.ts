@@ -1,14 +1,12 @@
 import winston from "winston";
 import moment from "moment-timezone";
 
-const LOG_DEBUG = process.env.LOG_DEBUG || false;
-
 const timezoned = () => {
   return moment().tz("Europe/Warsaw").format("DD.MM.YYYY HH:mm:ss");
 };
 
-const logger = winston.createLogger({
-  level: 'silly',
+export const logger = winston.createLogger({
+  level: "silly",
   format: winston.format.combine(
     winston.format.timestamp({
       format: timezoned,
@@ -22,5 +20,3 @@ const logger = winston.createLogger({
     new winston.transports.Console(),
   ],
 });
-
-export { logger, LOG_DEBUG };

@@ -2,11 +2,12 @@ import path, { dirname } from "path";
 import fs from "fs/promises";
 import TelegramBot from "node-telegram-bot-api";
 import { fileURLToPath } from "url";
-import { LOG_DEBUG, logger } from "./winston-logger.js";
+import { logger } from "./winston-logger.js";
 import { igramApiDownloadVideo } from "../downloaders/instagram-downloader.js";
 import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { FileType, ProcessVideoContext } from "../models.js";
 import { DB_removeUnhandledLink, DB_saveUnhandledLink } from "./database.js";
+import { LOG_DEBUG } from "../constants.js";
 
 export async function processAndSendVideo({
   bot,
@@ -16,27 +17,16 @@ export async function processAndSendVideo({
   downloader,
   originalMessageId,
 }: ProcessVideoContext): Promise<void> {
-  let statusMessage: TelegramBot.Message | undefined;
-
-  const sendStatus = async (message: string) => {
-    if (statusMessage) {
-      await bot.editMessageText(message, {
-        chat_id: chatId,
-        message_id: statusMessage.message_id,
-      });
-    } else {
-      statusMessage = await bot.sendMessage(chatId, message);
-    }
-  };
-
   const sendFile = async (filePath: string, fileType: FileType) => {
     if (fileType === "mp4") {
       await bot.sendVideo(chatId, filePath, {
         caption: `From @${username} with 💕`,
+        reply_to_message_id: originalMessageId,
       });
     } else if (fileType === "jpg") {
       await bot.sendPhoto(chatId, filePath, {
         caption: `From @${username} with 💕`,
+        reply_to_message_id: originalMessageId,
       });
     } else {
       logger.error(`Unsupported file type: ${fileType}`);
@@ -46,7 +36,6 @@ export async function processAndSendVideo({
 
   try {
     await DB_saveUnhandledLink(url, chatId, username, originalMessageId);
-    await sendStatus(`🔄 Начинаем скачивание...`);
 
     // Generate a safe filename
     const fileName = Math.random()
@@ -54,8 +43,6 @@ export async function processAndSendVideo({
       .substring(2, 22)
       .replace(/\s/g, "");
     const fileDir = dirname(fileURLToPath(import.meta.url));
-
-    await sendStatus(`🔄 Скачиваем...`);
 
     // Download the video
     let fileType: FileType = "mp4";
@@ -93,20 +80,13 @@ export async function processAndSendVideo({
       throw new Error("File size exceeds 100MB limit");
     }
 
-    await sendStatus(`🔄 Отправляем: ${fileName}`);
     await sendFile(filePath, fileType);
-
-    await DB_removeUnhandledLink(url);
     await fs.unlink(filePath);
-
-    if (chatId && originalMessageId) {
-      await bot.deleteMessage(chatId, originalMessageId);
-    }
+    await DB_removeUnhandledLink(url);
   } catch (error: any) {
-    logger.error(`Error in processAndSendVideo: ${error.message} ${error.stack}`);
-  } finally {
-    if (statusMessage) {
-      await bot.deleteMessage(chatId, statusMessage.message_id);
-    }
+    await bot.sendMessage(chatId, `${error.message}`, {
+      reply_to_message_id: originalMessageId,
+    });
+    logger.error(`Error in processAndSendVideo: ${error.stack}`);
   }
 }

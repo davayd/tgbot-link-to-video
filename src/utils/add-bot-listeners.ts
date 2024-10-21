@@ -65,7 +65,8 @@ export async function addBotListeners(bot: TelegramBot) {
       const chatId = msg.chat.id;
       const originalMessageId = msg.message_id;
       const url = msg.text;
-      const username = msg.from?.username || "unknown";
+      const username =
+        msg.forward_sender_name ?? msg.from?.username ?? "unknown";
 
       if (!url || !isValidUrl(url)) {
         return;

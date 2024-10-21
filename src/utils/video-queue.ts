@@ -1,7 +1,8 @@
 import PQueue from "p-queue";
 import { ProcessVideoContext } from "../models.js";
 import { processAndSendVideo } from "./process-and-send-video.js";
-import { LOG_DEBUG, logger } from "./winston-logger.js";
+import { logger } from "./winston-logger.js";
+import { LOG_DEBUG } from "../constants.js";
 
 const queue = new PQueue({ concurrency: 1 });
 
@@ -24,7 +25,7 @@ export function addToVideoQueue(context: ProcessVideoContext): void {
     try {
       await processAndSendVideo(context);
     } catch (error: any) {
-      logger.error(`Error in addToVideoQueue: ${error.message} ${error.stack}`);
+      logger.error(`Error in addToVideoQueue: ${error.stack}`);
     }
   });
 }
