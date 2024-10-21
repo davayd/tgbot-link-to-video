@@ -27,11 +27,12 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> .env
-          echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ vars.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}" >> .env
-          echo "LOG_DEBUG=true" >> .env
-          echo "VALID_CHAT_IDS=${{ secrets.VALID_CHAT_IDS }}" >> .env
-          cp .env ${{ github.workspace }}/.env
+          cat << EOF > ${{ github.workspace }}/.env
+          BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ vars.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}
+          LOG_DEBUG=true
+          VALID_CHAT_IDS=${{ secrets.VALID_CHAT_IDS }}
+          EOF
 
       - name: Install dependencies
         run: npm ci
