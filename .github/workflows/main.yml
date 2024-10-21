@@ -1,10 +1,6 @@
 name: CI/CD
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
       USE_LOG_DEBUG:
@@ -27,8 +23,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: [self-hosted, raspberry-ga]
-    if: github.ref == 'refs/heads/main' &&
-      !contains(github.event.head_commit.message, '[skipci]')
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
@@ -60,10 +55,13 @@ jobs:
           else
             docker compose build
           fi
-          docker compose up -d
+          docker compose up -d --remove-orphans
 
       - name: Check containers status
         run: docker compose ps
+
+      - name: Delete unused images
+        run: docker image prune -a -f
 
       - name: Clean up
         run: rm -rf ./dist
