@@ -77,6 +77,7 @@ export async function processAndSendVideo({
 
     await sendFile(filePath, fileType);
     await fs.unlink(filePath);
+    await bot.deleteMessage(chatId, originalMessageId);
   } catch (error: any) {
     await bot.sendMessage(chatId, `${error.message}`, {
       reply_to_message_id: originalMessageId,
