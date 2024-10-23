@@ -115,7 +115,8 @@ export async function igramApiDownloadVideo(
   if (
     location.includes(".jpg") ||
     location.includes(".png") ||
-    location.includes(".jpeg")
+    location.includes(".jpeg") ||
+    location.includes(".webp")
   ) {
     format = "jpg";
   }

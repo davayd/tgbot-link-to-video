@@ -18,12 +18,10 @@ export async function processAndSendVideo({
     if (fileType === "mp4") {
       await bot.sendVideo(chatId, filePath, {
         caption: `From @${username} with 💕`,
-        reply_to_message_id: originalMessageId,
       });
     } else if (fileType === "jpg") {
       await bot.sendPhoto(chatId, filePath, {
         caption: `From @${username} with 💕`,
-        reply_to_message_id: originalMessageId,
       });
     } else {
       logger.error(`Unsupported file type: ${fileType}`);
