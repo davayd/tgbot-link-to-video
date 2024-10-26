@@ -40,16 +40,13 @@ export async function processAndSendVideo({
     // Download the video
     let fileType: FileType = "mp4";
     LOG_DEBUG && logger.debug(`Downloader: ${downloader}`);
-    if (downloader === "ytdlp") {
-      await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
-      fileType = "mp4";
-    } else if (downloader === "igram") {
-      const { fileType: fileTypeFromDownloader } = await igramApiDownloadVideo(
-        url,
-        path.join(fileDir, fileName)
-      );
-      fileType = fileTypeFromDownloader;
-    }
+    const { fileType: fileTypeFromDownloader } = await tryDownload(
+      downloader,
+      url,
+      fileDir,
+      fileName
+    );
+    fileType = fileTypeFromDownloader;
 
     LOG_DEBUG && logger.debug(`FileType: ${fileType}`);
 
@@ -77,9 +74,53 @@ export async function processAndSendVideo({
     await fs.unlink(filePath);
     await bot.deleteMessage(chatId, originalMessageId);
   } catch (error: any) {
-    await bot.sendMessage(chatId, `${error.message}`, {
+    let errorMessage = error.message;
+    if (error.name === "RequestError" || error.name === "AggregateError") {
+      errorMessage =
+        "Network error occurred while processing the video. Please try again later.";
+    }
+    await bot.sendMessage(chatId, `${errorMessage}`, {
       reply_to_message_id: originalMessageId,
     });
     logger.error(`Error in processAndSendVideo: ${error.stack}`);
   }
+}
+
+async function tryDownload(
+  downloader: string,
+  url: string,
+  fileDir: string,
+  fileName: string
+) {
+  const maxRetries = 3;
+  let retries = 0;
+  let downloadSuccess = false;
+  let fileType: FileType = "mp4";
+
+  while (retries < maxRetries && !downloadSuccess) {
+    try {
+      if (downloader === "ytdlp") {
+        await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
+        fileType = "mp4";
+      } else if (downloader === "igram") {
+        const { fileType: fileTypeFromDownloader } =
+          await igramApiDownloadVideo(url, path.join(fileDir, fileName));
+        fileType = fileTypeFromDownloader;
+      }
+      downloadSuccess = true;
+    } catch (downloadError: any) {
+      retries++;
+      logger.warn(
+        `Download attempt ${retries} failed: ${downloadError.message}`
+      );
+      if (retries >= maxRetries) {
+        throw new Error(
+          `Failed to download video after ${maxRetries} attempts: ${downloadError.message}`
+        );
+      }
+      // Wait for a short time before retrying
+      await new Promise((resolve) => setTimeout(resolve, 3000 * retries));
+    }
+  }
+  return { fileType };
 }
