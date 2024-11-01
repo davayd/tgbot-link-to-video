@@ -2,10 +2,9 @@ import fetch from "node-fetch";
 import { createWriteStream } from "fs";
 import { pipeline } from "stream";
 import { promisify } from "util";
-import { chromium, LaunchOptions } from "playwright-core";
 import { FileType } from "../models";
 import { logger } from "../utils/winston-logger.js";
-import { Browser } from "playwright";
+import { Browser, chromium, LaunchOptions } from "playwright";
 import {
   LOG_DEBUG,
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
