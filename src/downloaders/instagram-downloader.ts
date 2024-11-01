@@ -27,6 +27,7 @@ async function getFileLocationFromIgram(url: string) {
     }),
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: true,
+    timeout: 10000,
   };
   LOG_DEBUG &&
     logger.debug(`Browser options: ${JSON.stringify(browserOptions)}`);
@@ -34,6 +35,7 @@ async function getFileLocationFromIgram(url: string) {
   LOG_DEBUG && logger.debug(`Launching browser`);
   browser = await chromium.launch(browserOptions);
 
+  LOG_DEBUG && logger.debug(`Creating new page`);
   const page = await browser.newPage();
 
   LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
