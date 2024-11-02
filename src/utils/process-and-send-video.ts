@@ -5,6 +5,7 @@ import { igramApiDownloadVideo } from "../downloaders/instagram-downloader.js";
 import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { FileType, ProcessVideoContext } from "../models.js";
 import { LOG_DEBUG } from "../constants.js";
+import TelegramBot from "node-telegram-bot-api";
 
 export async function processAndSendVideo({
   bot,
@@ -14,21 +15,6 @@ export async function processAndSendVideo({
   downloader,
   originalMessageId,
 }: ProcessVideoContext): Promise<void> {
-  const sendFile = async (filePath: string, fileType: FileType) => {
-    if (fileType === "mp4") {
-      await bot.sendVideo(chatId, filePath, {
-        caption: `From @${username} with 💕`,
-      });
-    } else if (fileType === "jpg") {
-      await bot.sendPhoto(chatId, filePath, {
-        caption: `From @${username} with 💕`,
-      });
-    } else {
-      logger.error(`Unsupported file type: ${fileType}`);
-      throw new Error(`Unsupported file type: ${fileType}`);
-    }
-  };
-
   try {
     // Generate a safe filename
     const fileName = Math.random()
@@ -70,19 +56,41 @@ export async function processAndSendVideo({
       throw new Error("File size exceeds 100MB limit");
     }
 
-    await sendFile(filePath, fileType);
+    await sendFile(bot, chatId, username, filePath, fileType);
     await fs.unlink(filePath);
     await bot.deleteMessage(chatId, originalMessageId);
   } catch (error: any) {
     let errorMessage = error.message;
-    if (error.name === "RequestError" || error.name === "AggregateError") {
-      errorMessage =
-        "Network error occurred while processing the video. Please try again later.";
-    }
     await bot.sendMessage(chatId, `${errorMessage}`, {
       reply_to_message_id: originalMessageId,
     });
     logger.error(`Error in processAndSendVideo: ${error.stack}`);
+  }
+}
+
+async function sendFile(
+  bot: TelegramBot,
+  chatId: string | number,
+  username: string,
+  filePath: string,
+  fileType: FileType
+) {
+  try {
+    if (fileType === "mp4") {
+      await bot.sendVideo(chatId, filePath, {
+        caption: `From @${username} with 💕`,
+      });
+    } else if (fileType === "jpg") {
+      await bot.sendPhoto(chatId, filePath, {
+        caption: `From @${username} with 💕`,
+      });
+    } else {
+      logger.error(`Unsupported file type: ${fileType}`);
+      throw new Error(`Unsupported file type: ${fileType}`);
+    }
+  } catch (error: any) {
+    logger.error(`Error in sendFile: ${error.stack}`);
+    throw new Error(`Error in sendFile`);
   }
 }
 
