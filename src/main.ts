@@ -19,6 +19,8 @@ try {
     logger.error(`Webhook error: ${error.stack}`);
   });
   await addBotListeners(bot);
+  const webhookInfo = await bot.getWebHookInfo();
+  logger.debug(webhookInfo);
 
   logger.info("Bot is running...");
 } catch (error: any) {
