@@ -1,7 +1,7 @@
 import "dotenv/config";
 import TelegramBot from "node-telegram-bot-api";
 import { addBotListeners, logger } from "./utils/index.js";
-import { BOT_TOKEN } from "./constants.js";
+import { BOT_TOKEN, WEBHOOK_URL } from "./constants.js";
 
 if (!BOT_TOKEN) {
   logger.error(`BOT_TOKEN environment variable is not set`);
@@ -10,11 +10,9 @@ if (!BOT_TOKEN) {
 
 try {
   const bot = new TelegramBot(BOT_TOKEN, {
-    webHook: true
+    webHook: true,
   });
-  bot.on("polling_error", (error) => {
-    logger.error(`Polling error: ${error.stack}`);
-  });
+  await bot.setWebHook(`${WEBHOOK_URL}/bot${BOT_TOKEN}`);
   bot.on("webhook_error", (error) => {
     logger.error(`Webhook error: ${error.stack}`);
   });

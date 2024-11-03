@@ -32,6 +32,7 @@ jobs:
           PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ vars.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}
           LOG_DEBUG=true
           VALID_CHAT_IDS=${{ secrets.VALID_CHAT_IDS }}
+          WEBHOOK_URL=${{ vars.WEBHOOK_URL }}
           EOF
 
       - name: Install dependencies
