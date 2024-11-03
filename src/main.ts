@@ -9,9 +9,13 @@ if (!BOT_TOKEN) {
 }
 
 try {
-  const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+  const bot = new TelegramBot(BOT_TOKEN);
+  bot.setWebHook("https://ritamazura.com/tgbot");
   bot.on("polling_error", (error) => {
     logger.error(`Polling error: ${error.stack}`);
+  });
+  bot.on("webhook_error", (error) => {
+    logger.error(`Webhook error: ${error.stack}`);
   });
   await addBotListeners(bot);
 

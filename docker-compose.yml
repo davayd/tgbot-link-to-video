@@ -6,6 +6,8 @@ services:
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
       - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}
+    ports:
+      - 3000:3000
     restart: unless-stopped
     cap_add:
       - SYS_ADMIN
