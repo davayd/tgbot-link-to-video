@@ -21,6 +21,7 @@ try {
 
   logger.info("Bot is running...");
 } catch (error: any) {
+  console.log(error);
   logger.error(`Error initializing bot: ${error.stack}`);
   process.exit(1);
 }
