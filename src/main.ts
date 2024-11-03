@@ -20,7 +20,7 @@ try {
   });
   await addBotListeners(bot);
   const webhookInfo = await bot.getWebHookInfo();
-  logger.debug(webhookInfo);
+  logger.debug(JSON.stringify(webhookInfo));
 
   logger.info("Bot is running...");
 } catch (error: any) {
