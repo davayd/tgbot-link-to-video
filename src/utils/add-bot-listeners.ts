@@ -5,6 +5,9 @@ import { isValidUrl, getDownloaderType } from "./is-valid-url.js";
 import { VALID_CHAT_IDS } from "../constants.js";
 
 export async function addBotListeners(bot: TelegramBot) {
+  // Set webhook
+  await bot.setWebHook("https://tgbot.ritamazura.com");
+
   // Inputs from instagram and youtube
   bot.on("text", async (msg) => {
     try {

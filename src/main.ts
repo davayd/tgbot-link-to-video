@@ -10,7 +10,6 @@ if (!BOT_TOKEN) {
 
 try {
   const bot = new TelegramBot(BOT_TOKEN);
-  bot.setWebHook("https://tgbot.ritamazura.com");
   bot.on("polling_error", (error) => {
     logger.error(`Polling error: ${error.stack}`);
   });
