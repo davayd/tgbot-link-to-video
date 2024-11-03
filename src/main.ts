@@ -9,7 +9,9 @@ if (!BOT_TOKEN) {
 }
 
 try {
-  const bot = new TelegramBot(BOT_TOKEN);
+  const bot = new TelegramBot(BOT_TOKEN, {
+    webHook: true
+  });
   bot.on("polling_error", (error) => {
     logger.error(`Polling error: ${error.stack}`);
   });
