@@ -6,7 +6,7 @@ export function isValidUrl(url: string) {
 
 function isInstagramUrl(url: string) {
   const instagramRegex =
-    /(https?:\/\/)?(www\.)?instagram\.com\/([A-Za-z0-9_.]+(\/)?)(p|reel|tv|reels|stories)\//;
+    /(https?:\/\/)?(www\.)?instagram\.com\/([A-Za-z0-9_.]+(\/)?)?(p|reel|tv|reels|stories)\//;
   return instagramRegex.test(url);
 }
 
