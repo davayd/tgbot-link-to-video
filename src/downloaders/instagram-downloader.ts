@@ -4,7 +4,7 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import { FileType } from "../models";
 import { logger } from "../utils/winston-logger.js";
-import { Browser, chromium, LaunchOptions } from "playwright";
+import { Browser, chromium, LaunchOptions, Page } from "playwright";
 import {
   LOG_DEBUG,
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
@@ -19,6 +19,7 @@ async function getFileLocationFromIgram(url: string) {
   const igramUrl = url.includes("stories") ? IG_URL_STORIES : IG_URL_REELS;
   let browser: Browser | null = null;
   let href: string | null = null;
+  let page: Page | null = null;
 
   const browserOptions: LaunchOptions = {
     ...(PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
@@ -31,11 +32,24 @@ async function getFileLocationFromIgram(url: string) {
   LOG_DEBUG &&
     logger.debug(`Browser options: ${JSON.stringify(browserOptions)}`);
 
-  LOG_DEBUG && logger.debug(`Launching browser`);
-  browser = await chromium.launch(browserOptions);
+  try {
+    LOG_DEBUG && logger.debug(`Launching browser`);
+    browser = await chromium.launch(browserOptions);
 
-  LOG_DEBUG && logger.debug(`Creating new page`);
-  const page = await browser.newPage();
+    LOG_DEBUG && logger.debug(`Creating new page`);
+    page = await browser.newPage();
+  } catch (error: any) {
+    logger.error(`Failed to launch browser: ${error.stack}`);
+    if (page) {
+      await page.close();
+      page = null;
+    }
+    if (browser) {
+      await browser.close();
+      browser = null;
+    }
+    throw new Error("Failed to launch browser");
+  }
 
   LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
   await page.goto(igramUrl);
