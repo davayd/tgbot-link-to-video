@@ -25,7 +25,7 @@ export async function addBotListeners(bot: TelegramBot) {
         `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${username}`
       );
 
-      addToVideoQueue({
+      await addToVideoQueue({
         bot,
         url,
         chatId,

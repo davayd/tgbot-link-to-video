@@ -20,12 +20,14 @@ queue.on("next", () => {
     );
 });
 
-export function addToVideoQueue(context: ProcessVideoContext): void {
-  queue.add(async () => {
-    try {
-      await processAndSendVideo(context);
-    } catch (error: any) {
-      logger.error(`Error in addToVideoQueue: ${error.stack}`);
-    }
+queue.on("error", (error: any) => {
+  logger.error(`Error in queue: ${error.stack}`);
+});
+
+export async function addToVideoQueue(
+  context: ProcessVideoContext
+): Promise<void> {
+  await queue.add(() => {
+    processAndSendVideo(context);
   });
 }
