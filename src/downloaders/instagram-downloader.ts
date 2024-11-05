@@ -32,23 +32,19 @@ async function getFileLocationFromIgram(url: string) {
   LOG_DEBUG &&
     logger.debug(`Browser options: ${JSON.stringify(browserOptions)}`);
 
-  try {
-    LOG_DEBUG && logger.debug(`Launching browser`);
-    browser = await chromium.launch(browserOptions);
+  LOG_DEBUG && logger.debug(`Launching browser`);
+  browser = await chromium.launch(browserOptions);
 
-    LOG_DEBUG && logger.debug(`Creating new page`);
-    page = await browser.newPage();
-  } catch (error: any) {
-    logger.error(`Failed to launch browser: ${error.stack}`);
-    if (page) {
-      await page.close();
-      page = null;
-    }
-    if (browser) {
-      await browser.close();
-      browser = null;
-    }
-    throw new Error("Failed to launch browser");
+  try {
+    page = await Promise.race([
+      browser.newPage(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Page creation timeout after 10 seconds')), 10000)
+      )
+    ]) as Page;
+  } catch (error) {
+    if (browser) await browser.close();
+    throw error;
   }
 
   LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);

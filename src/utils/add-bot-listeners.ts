@@ -37,4 +37,8 @@ export async function addBotListeners(bot: TelegramBot) {
       logger.error(`Error in onText listener: ${error.stack}`);
     }
   });
+
+  bot.on("webhook_error", (error) => {
+    logger.error(`Webhook error: ${error.stack}`);
+  });
 }

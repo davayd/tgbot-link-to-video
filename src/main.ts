@@ -13,9 +13,6 @@ try {
     webHook: true,
   });
   await bot.setWebHook(`${WEBHOOK_URL}/bot${BOT_TOKEN}`);
-  bot.on("webhook_error", (error) => {
-    logger.error(`Webhook error: ${error.stack}`);
-  });
   await addBotListeners(bot);
   const webhookInfo = await bot.getWebHookInfo();
   logger.debug(JSON.stringify(webhookInfo));
