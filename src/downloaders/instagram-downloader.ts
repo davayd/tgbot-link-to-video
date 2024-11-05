@@ -36,6 +36,7 @@ async function getFileLocationFromIgram(url: string) {
   browser = await chromium.launch(browserOptions);
 
   try {
+    LOG_DEBUG && logger.debug(`Creating new page`);
     page = await Promise.race([
       browser.newPage(),
       new Promise((_, reject) => 
