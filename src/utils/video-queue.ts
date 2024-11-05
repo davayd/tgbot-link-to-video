@@ -25,7 +25,7 @@ queue.on("error", (error: any) => {
 });
 
 export function addToVideoQueue(context: ProcessVideoContext): void {
-  queue.add(() => {
-    processAndSendVideo(context);
+  queue.add(async () => {
+    await processAndSendVideo(context);
   });
 }
