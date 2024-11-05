@@ -100,35 +100,18 @@ async function tryDownload(
   fileDir: string,
   fileName: string
 ) {
-  const maxRetries = 3;
-  let retries = 0;
-  let downloadSuccess = false;
   let fileType: FileType = "mp4";
 
-  while (retries < maxRetries && !downloadSuccess) {
-    try {
-      if (downloader === "ytdlp") {
-        await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
-        fileType = "mp4";
-      } else if (downloader === "igram") {
-        const { fileType: fileTypeFromDownloader } =
-          await igramApiDownloadVideo(url, path.join(fileDir, fileName));
-        fileType = fileTypeFromDownloader;
-      }
-      downloadSuccess = true;
-    } catch (downloadError: any) {
-      retries++;
-      logger.warn(
-        `Download attempt ${retries} failed: ${downloadError.message}`
-      );
-      if (retries >= maxRetries) {
-        throw new Error(
-          `Failed to download video after ${maxRetries} attempts: ${downloadError.message}`
-        );
-      }
-      // Wait for a short time before retrying
-      await new Promise((resolve) => setTimeout(resolve, 3000 * retries));
-    }
+  if (downloader === "ytdlp") {
+    await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
+    fileType = "mp4";
+  } else if (downloader === "igram") {
+    const { fileType: fileTypeFromDownloader } = await igramApiDownloadVideo(
+      url,
+      path.join(fileDir, fileName)
+    );
+    fileType = fileTypeFromDownloader;
   }
+
   return { fileType };
 }
