@@ -45,7 +45,7 @@ async function getFileLocationFromIgram(url: string) {
     ]) as Page;
   } catch (error) {
     if (browser) await browser.close();
-    throw error;
+    throw new Error("Failed to create Chromium page");
   }
 
   LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
