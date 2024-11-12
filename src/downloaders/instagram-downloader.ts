@@ -9,6 +9,7 @@ import {
   LOG_DEBUG,
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
 } from "../constants.js";
+import { retryAsync } from "../utils/retry-async.js";
 
 const streamPipeline = promisify(pipeline);
 
@@ -37,14 +38,20 @@ async function getFileLocationFromIgram(url: string) {
 
   try {
     LOG_DEBUG && logger.debug(`Creating new page`);
-    page = await Promise.race([
+    page = (await Promise.race([
       browser.newPage(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Page creation timeout after 10 seconds')), 10000)
-      )
-    ]) as Page;
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Page creation timeout after 10 seconds")),
+          10000
+        )
+      ),
+    ])) as Page;
   } catch (error) {
-    if (browser) await browser.close();
+    if (browser) {
+      await browser.close();
+      browser = null;
+    }
     throw new Error("Failed to create Chromium page");
   }
 
@@ -121,7 +128,13 @@ export async function igramApiDownloadVideo(
   url: string,
   outputPath: string
 ): Promise<{ fileType: FileType }> {
-  const location = await getFileLocationFromIgram(url);
+  const createAsyncRequest = async () => {
+    return getFileLocationFromIgram(url);
+  };
+  const location = await retryAsync<string>(createAsyncRequest, {
+    retry: 3,
+    delay: 3000,
+  });
 
   let format: FileType = "mp4";
   if (
