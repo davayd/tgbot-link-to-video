@@ -56,6 +56,7 @@ export async function processAndSendVideo({
       throw new Error("File size exceeds 100MB limit");
     }
 
+    await bot.sendChatAction(chatId, "upload_video");
     await sendFile(bot, chatId, username, filePath, fileType);
     await fs.unlink(filePath);
     await bot.deleteMessage(chatId, originalMessageId);
