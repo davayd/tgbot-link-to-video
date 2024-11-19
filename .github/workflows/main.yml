@@ -57,7 +57,7 @@ jobs:
         run: docker compose ps
 
       - name: Delete unused images
-        run: docker image prune -a -f
+        run: docker system prune -a -f
 
       - name: Clean up
         run: rm -rf ./dist
