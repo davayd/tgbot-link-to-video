@@ -1,0 +1,13 @@
+diff --git a/node_modules/@types/request/index.d.ts b/node_modules/@types/request/index.d.ts
+index af84295..b998f14 100644
+--- a/node_modules/@types/request/index.d.ts
++++ b/node_modules/@types/request/index.d.ts
+@@ -386,7 +386,7 @@ declare namespace request {
+     type Cookie = tough.Cookie;
+ 
+     interface CookieJar {
+-        setCookie(cookieOrStr: Cookie | string, uri: string | Url, options?: tough.CookieJar.SetCookieOptions): void;
++        setCookie(cookieOrStr: Cookie | string, uri: string | Url, options?: tough.SetCookieOptions): void;
+         getCookieString(uri: string | Url): string;
+         getCookies(uri: string | Url): Cookie[];
+     }
