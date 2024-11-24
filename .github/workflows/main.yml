@@ -31,7 +31,7 @@ jobs:
           BOT_TOKEN=${{ secrets.BOT_TOKEN }}
           PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=${{ vars.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }}
           LOG_DEBUG=true
-          VALID_CHAT_IDS=${{ secrets.VALID_CHAT_IDS }}
+          VALID_CHAT_IDS=${{ vars.VALID_CHAT_IDS }}
           WEBHOOK_URL=${{ vars.WEBHOOK_URL }}
           EOF
 

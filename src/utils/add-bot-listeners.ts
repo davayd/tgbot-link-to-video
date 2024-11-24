@@ -14,16 +14,16 @@ export async function addBotListeners(bot: TelegramBot) {
       const username =
         msg.forward_sender_name ?? msg.from?.username ?? "unknown";
 
+      logger.info(
+        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${username} \n originalMessageId: ${originalMessageId}`
+      );
+
       if (!url || !isValidUrl(url)) {
         return;
       }
       if (!VALID_CHAT_IDS.includes(chatId)) {
         return;
       }
-
-      logger.info(
-        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${username}`
-      );
 
       await addToVideoQueue({
         bot,

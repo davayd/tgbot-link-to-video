@@ -30,10 +30,16 @@ RUN apk update && apk add --no-cache \
     chromium \
     ca-certificates
 
+# Создаем символическую ссылку python -> python3
+RUN ln -sf python3 /usr/bin/python
+
 # Install yt-dlp in a virtual environment
 RUN python3 -m venv /opt/venv \
     && . /opt/venv/bin/activate \
     && pip install --no-cache-dir --upgrade yt-dlp
+
+# Добавим PATH для Python виртуального окружения
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
@@ -44,8 +50,11 @@ COPY tsconfig.json ./
 COPY src ./src
 COPY .env .
 
+# Перед npm install добавим:
+RUN npm install -g yt-dlp-exec --unsafe-perm=true
+
 # Install project dependencies
-RUN npm install
+RUN npm install --verbose
 
 # Build the application
 RUN npm run build
