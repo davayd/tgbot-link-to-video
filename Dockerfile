@@ -5,7 +5,11 @@ FROM node:22-alpine
 # https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/dist_package_versions.json
 # We download external chromium and not use playwright one to avoid issues with executable path
 # TODO: Playwright downloads own chromium (in /root/.cache/ms-playwright/... directory) which does not have ./chromium-laucher.sh
-RUN apk update && apk add --no-cache \
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache \
     libuuid \
     libx11 \
     libxcb \
@@ -24,7 +28,7 @@ RUN apk update && apk add --no-cache \
     libxft \
     ffmpeg \
     python3 \
-    py3-pip \ 
+    py3-pip \
     py3-setuptools \
     libxinerama \
     chromium \
