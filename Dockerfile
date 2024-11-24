@@ -1,23 +1,12 @@
 # Use an official Node.js runtime as the base image
 FROM node:22-alpine
 
-# Setup Alpine repositories and update system
-RUN apk update && apk upgrade && \
-    echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
-    echo "@edgecommunity http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-    echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
-    apk update
-
-# Install basic dependencies
-RUN apk add --no-cache \
-    ca-certificates \
-    ffmpeg \
-    python3 \
-    py3-pip \
-    py3-setuptools
-
-# Install X11 dependencies
-RUN apk add --no-cache \
+# Install system dependencies
+# https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/dist_package_versions.json
+# We download external chromium and not use playwright one to avoid issues with executable path
+# TODO: Playwright downloads own chromium (in /root/.cache/ms-playwright/... directory) which does not have ./chromium-laucher.sh
+RUN apk update && apk add --no-cache \
+    libuuid \
     libx11 \
     libxcb \
     libxcomposite \
@@ -26,32 +15,25 @@ RUN apk add --no-cache \
     libxext \
     libxfixes \
     libxi \
+    libxkbcommon \
     libxrandr \
     libxrender \
+    libxshmfence \
     libxtst \
     libxscrnsaver \
     libxft \
-    libxinerama
-
-# Install additional required libraries
-RUN apk add --no-cache \
-    libuuid \
-    libxkbcommon \
-    libxshmfence
-
-# Install Chromium separately
-RUN apk add --no-cache chromium@edge
-
-# Создаем символическую ссылку python -> python3
-RUN ln -sf python3 /usr/bin/python
+    ffmpeg \
+    python3 \
+    py3-pip \ 
+    py3-setuptools \
+    libxinerama \
+    chromium \
+    ca-certificates
 
 # Install yt-dlp in a virtual environment
 RUN python3 -m venv /opt/venv \
     && . /opt/venv/bin/activate \
     && pip install --no-cache-dir --upgrade yt-dlp
-
-# Добавим PATH для Python виртуального окружения
-ENV PATH="/opt/venv/bin:$PATH"
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
@@ -64,7 +46,7 @@ COPY .env .
 COPY patches ./patches
 
 # Install project dependencies
-RUN npm install --verbose
+RUN npm install
 
 # Build the application
 RUN npm run build
