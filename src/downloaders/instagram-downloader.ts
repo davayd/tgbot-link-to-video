@@ -61,33 +61,10 @@ async function getFileLocationFromIgram(url: string) {
   LOG_DEBUG && logger.debug(`Setting viewport size to 1080x1024`);
   await page.setViewportSize({ width: 1080, height: 1024 });
 
-  // Not required for now: igram disabled it
-  // try {
-  //   LOG_DEBUG && logger.debug(`Waiting for consent button`);
-  //   await page.waitForSelector(".fc-consent-root .fc-button.fc-cta-consent", {
-  //     timeout: 5000,
-  //   });
-  //   await page.click(".fc-consent-root .fc-button.fc-cta-consent");
-  // } catch (error) {
-  //   LOG_DEBUG &&
-  //     logger.debug("Consent button not found or not clickable. Skipping...");
-  // }
-
   LOG_DEBUG && logger.debug(`Filling search form with ${url}`);
   await page.fill("#search-form-input", url);
   LOG_DEBUG && logger.debug(`Clicking search button`);
   await page.click(".search-form__button");
-
-  // Not required for now: igram disabled it
-  // try {
-  //   LOG_DEBUG && logger.debug(`Waiting for modal button`);
-  //   await page.waitForSelector(".modal__btn", { timeout: 2000 });
-  //   LOG_DEBUG && logger.debug(`Clicking modal button`);
-  //   await page.click(".modal__btn");
-  // } catch (error) {
-  //   LOG_DEBUG &&
-  //     logger.debug("Modal button not found or not clickable. Skipping...");
-  // }
 
   try {
     LOG_DEBUG && logger.debug(`Waiting for search result`);
