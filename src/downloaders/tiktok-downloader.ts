@@ -67,9 +67,11 @@ async function getFileLocationSSSTik(url: string) {
   LOG_DEBUG && logger.debug(`Filling search form with ${url}`);
   await page.fill("#main_page_text", url);
   LOG_DEBUG && logger.debug(`Clicking search button`);
-  await page.click("button.vignette_active");
+  await page.click("button.vignette_active[type='submit']");
 
   try {
+    // await page.waitForTimeout(10000);
+    await page.screenshot({ path: "screenshot.png" });
     LOG_DEBUG && logger.debug(`Waiting for search result`);
     await page.waitForSelector("a.download_link.without_watermark");
   } catch (error) {
@@ -106,7 +108,7 @@ export async function ssstikDownloadVideo(
     return getFileLocationSSSTik(url);
   };
   const location = await retryAsync<string>(createAsyncRequest, {
-    retry: 3,
+    retry: 1,
     delay: 3000,
   });
 
