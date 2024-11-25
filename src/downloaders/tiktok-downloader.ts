@@ -70,10 +70,12 @@ async function getFileLocationSSSTik(url: string) {
   await page.click("button.vignette_active[type='submit']");
 
   try {
-    // await page.waitForTimeout(10000);
+    await page.waitForTimeout(5000);
     await page.screenshot({ path: "screenshot.png" });
     LOG_DEBUG && logger.debug(`Waiting for search result`);
-    await page.waitForSelector("a.download_link.without_watermark");
+    await page.waitForSelector("a.download_link.without_watermark", {
+      timeout: 10000,
+    });
   } catch (error) {
     LOG_DEBUG && logger.debug(`Getting error status`);
     await page.waitForSelector(".panel-body");

@@ -35,12 +35,6 @@ jobs:
           WEBHOOK_URL=${{ vars.WEBHOOK_URL }}
           EOF
 
-      # - name: Install dependencies
-      #   run: npm ci
-
-      # - name: Build
-      #   run: npm run build
-
       - name: Build and start containers
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.FORCE_CACHE }}" == "true" ]]; then
