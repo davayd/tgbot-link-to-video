@@ -13,7 +13,7 @@ import { createWriteStream } from "fs";
 import fetch from "node-fetch";
 import { removeConsent } from "./browser-helpers.js";
 
-const RESOURCE_URL = "https://ssstik.io/";
+const RESOURCE_URL = "https://ttsave.app/en";
 
 const streamPipeline = promisify(pipeline);
 
@@ -65,31 +65,27 @@ async function getFileLocationSSSTik(url: string) {
   await removeConsent(page);
 
   LOG_DEBUG && logger.debug(`Filling search form with ${url}`);
-  await page.fill("#main_page_text", url);
+  await page.fill("input#input-query", url);
   LOG_DEBUG && logger.debug(`Clicking search button`);
-  await page.click("button.vignette_active[type='submit']");
+  await page.click("button#btn-download");
 
   try {
-    await page.waitForTimeout(5000);
     await page.screenshot({ path: "screenshot.png" });
     LOG_DEBUG && logger.debug(`Waiting for search result`);
-    await page.waitForSelector("a.download_link.without_watermark", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "div#button-download-ready a[type='no-watermark']"
+    );
   } catch (error) {
     LOG_DEBUG && logger.debug(`Getting error status`);
-    await page.waitForSelector(".panel-body");
-    const errorMessage = await page.evaluate(() => {
-      const errorMessage = document.querySelector(".panel-body")?.textContent;
-      return errorMessage;
-    });
-    logger.error(`The service SSSTIK returned an error: ${errorMessage}`);
-    throw new Error(`Произошла ошибка в сервисе SSSTIK: ${errorMessage}`);
+    logger.error(`The service SSSTIK returned an error`);
+    throw new Error(`Произошла ошибка в сервисе SSSTIK`);
   }
 
   LOG_DEBUG && logger.debug(`Getting href from SSSTIK`);
   href = await page.evaluate(() => {
-    const link = document.querySelector("a.download_link.without_watermark");
+    const link = document.querySelector(
+      "div#button-download-ready a[type='no-watermark']"
+    );
     return link ? link.getAttribute("href") : null;
   });
 
