@@ -36,6 +36,30 @@ async function getFileLocationFromIgram(url: string) {
   LOG_DEBUG && logger.debug(`Launching browser`);
   browser = await chromium.launch(browserOptions);
 
+  // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
+  if (url.includes("/share/reel/")) {
+    try {
+      LOG_DEBUG && logger.debug(`Creating new page for /share/reel/ link`);
+      page = (await Promise.race([
+        browser.newPage(),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Page creation timeout after 10 seconds")),
+            10000
+          )
+        ),
+      ])) as Page;
+      await page.goto(url);
+      url = page.url();
+    } catch (error) {
+      if (browser) {
+        await browser.close();
+        browser = null;
+      }
+      throw new Error("Failed to create Chromium page for /share/reel/ link");
+    }
+  }
+
   try {
     LOG_DEBUG && logger.debug(`Creating new page`);
     page = (await Promise.race([
