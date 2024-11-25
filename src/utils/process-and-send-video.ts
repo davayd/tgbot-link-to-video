@@ -6,6 +6,7 @@ import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { FileType, ProcessVideoContext } from "../models.js";
 import { LOG_DEBUG } from "../constants.js";
 import TelegramBot from "node-telegram-bot-api";
+import { ssstikDownloadVideo } from "../downloaders/tiktok-downloader.js";
 
 export async function processAndSendVideo({
   bot,
@@ -108,6 +109,12 @@ async function tryDownload(
     fileType = "mp4";
   } else if (downloader === "igram") {
     const { fileType: fileTypeFromDownloader } = await igramApiDownloadVideo(
+      url,
+      path.join(fileDir, fileName)
+    );
+    fileType = fileTypeFromDownloader;
+  } else if (downloader === "ssstik") {
+    const { fileType: fileTypeFromDownloader } = await ssstikDownloadVideo(
       url,
       path.join(fileDir, fileName)
     );

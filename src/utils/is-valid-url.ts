@@ -1,7 +1,7 @@
 import { DownloaderType } from "../models";
 
 export function isValidUrl(url: string) {
-  return isYoutubeUrl(url) || isInstagramUrl(url);
+  return isYoutubeUrl(url) || isInstagramUrl(url) || isTiktokUrl(url);
 }
 
 function isInstagramUrl(url: string) {
@@ -16,6 +16,11 @@ function isYoutubeUrl(url: string) {
   return youtubeRegex.test(url);
 }
 
+function isTiktokUrl(url: string) {
+  const tiktokRegex = /(https?:\/\/)?(www\.)?tiktok\.com\//;
+  return tiktokRegex.test(url);
+}
+
 export function getDownloaderType(url: string): DownloaderType {
-  return isInstagramUrl(url) ? "igram" : "ytdlp";
+  return isInstagramUrl(url) ? "igram" : isTiktokUrl(url) ? "ssstik" : "ytdlp";
 }
