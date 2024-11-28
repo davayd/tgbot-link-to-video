@@ -42,7 +42,7 @@ async function getFileLocationFromIgram(url: string) {
       browser,
       "Handle /share/reel/ link"
     );
-    page.goto(url);
+    await page.goto(url);
     url = page.url();
   }
 
