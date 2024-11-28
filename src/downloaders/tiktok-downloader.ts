@@ -14,6 +14,7 @@ import fetch from "node-fetch";
 import { removeConsent } from "./browser-helpers.js";
 
 const RESOURCE_URL = "https://ttsave.app/en";
+const SERVICE_NAME = "TTSAVE";
 
 const streamPipeline = promisify(pipeline);
 
@@ -70,18 +71,17 @@ async function getFileLocationSSSTik(url: string) {
   await page.click("button#btn-download");
 
   try {
-    await page.screenshot({ path: "screenshot.png" });
     LOG_DEBUG && logger.debug(`Waiting for search result`);
     await page.waitForSelector(
       "div#button-download-ready a[type='no-watermark']"
     );
   } catch (error) {
     LOG_DEBUG && logger.debug(`Getting error status`);
-    logger.error(`The service SSSTIK returned an error`);
-    throw new Error(`Произошла ошибка в сервисе SSSTIK`);
+    logger.error(`The service ${SERVICE_NAME} returned an error`);
+    throw new Error(`Произошла ошибка в сервисе ${SERVICE_NAME}`);
   }
 
-  LOG_DEBUG && logger.debug(`Getting href from SSSTIK`);
+  LOG_DEBUG && logger.debug(`Getting href from ${SERVICE_NAME}`);
   href = await page.evaluate(() => {
     const link = document.querySelector(
       "div#button-download-ready a[type='no-watermark']"
@@ -90,8 +90,8 @@ async function getFileLocationSSSTik(url: string) {
   });
 
   if (!href) {
-    logger.error(`Failed to get HREF from ssstik`);
-    throw new Error("Failed to get HREF from ssstik");
+    logger.error(`Failed to get HREF from ${SERVICE_NAME}`);
+    throw new Error(`Failed to get HREF from ${SERVICE_NAME}`);
   }
 
   await browser.close();

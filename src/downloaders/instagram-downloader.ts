@@ -38,46 +38,15 @@ async function getFileLocationFromIgram(url: string) {
 
   // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
   if (url.includes("/share/reel/")) {
-    try {
-      LOG_DEBUG && logger.debug(`Creating new page for /share/reel/ link`);
-      page = (await Promise.race([
-        browser.newPage(),
-        new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error("Page creation timeout after 10 seconds")),
-            10000
-          )
-        ),
-      ])) as Page;
-      await page.goto(url);
-      url = page.url();
-    } catch (error) {
-      if (browser) {
-        await browser.close();
-        browser = null;
-      }
-      throw new Error("Failed to create Chromium page for /share/reel/ link");
-    }
+    page = await executePageCreationWithTimeout(
+      browser,
+      "Handle /share/reel/ link"
+    );
+    page.goto(url);
+    url = page.url();
   }
 
-  try {
-    LOG_DEBUG && logger.debug(`Creating new page`);
-    page = (await Promise.race([
-      browser.newPage(),
-      new Promise((_, reject) =>
-        setTimeout(
-          () => reject(new Error("Page creation timeout after 10 seconds")),
-          10000
-        )
-      ),
-    ])) as Page;
-  } catch (error) {
-    if (browser) {
-      await browser.close();
-      browser = null;
-    }
-    throw new Error("Failed to create Chromium page");
-  }
+  page = await executePageCreationWithTimeout(browser, "Handle igram url");
 
   LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
   await page.goto(igramUrl);
@@ -110,11 +79,7 @@ async function getFileLocationFromIgram(url: string) {
     throw new Error(`Произошла ошибка в сервисе IGRAM: ${errorMessage}`);
   }
 
-  LOG_DEBUG && logger.debug(`Getting href from igram`);
-  href = await page.evaluate(() => {
-    const link = document.querySelector(".media-content__info a");
-    return link ? link.getAttribute("href") : null;
-  });
+  href = await getHrefFromIgram(page, browser);
 
   if (!href) {
     logger.error(`Failed to get HREF from igram`);
@@ -156,4 +121,58 @@ export async function igramApiDownloadVideo(
   );
 
   return { fileType: format };
+}
+
+async function executePageCreationWithTimeout(
+  browser: Browser,
+  operationName: string
+): Promise<Page> {
+  try {
+    LOG_DEBUG &&
+      logger.debug(`Creating new Chromium page for: ${operationName}`);
+    const page: Page = await Promise.race([
+      browser.newPage(),
+      new Promise<Page>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`${operationName} timeout after 10 seconds`)),
+          10000
+        )
+      ),
+    ]);
+    return page;
+  } catch (error) {
+    if (browser) {
+      await browser.close();
+    }
+    throw new Error(`Failed to create Chromium page for: ${operationName}`);
+  }
+}
+
+async function getHrefFromIgram(
+  page: Page,
+  browser: Browser
+): Promise<string | null> {
+  LOG_DEBUG && logger.debug(`Getting href from igram`);
+  try {
+    const href: string | null = await Promise.race([
+      await page.evaluate(() => {
+        const link = document.querySelector(".media-content__info a");
+        return link ? link.getAttribute("href") : null;
+      }),
+      new Promise<string>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(new Error(`Get href from igram timeout after 10 seconds`)),
+          10000
+        )
+      ),
+    ]);
+
+    return href;
+  } catch (error) {
+    if (browser) {
+      await browser.close();
+    }
+    throw new Error(`Failed to get href from igram`);
+  }
 }
