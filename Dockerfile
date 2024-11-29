@@ -28,7 +28,8 @@ RUN apk update && apk add --no-cache \
     py3-setuptools \
     libxinerama \
     chromium \
-    ca-certificates
+    ca-certificates \
+    nano
 
 # Install yt-dlp in a virtual environment
 RUN python3 -m venv /opt/venv \
