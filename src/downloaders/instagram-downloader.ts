@@ -4,7 +4,14 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import { FileType } from "../models";
 import { logger } from "../utils/winston-logger.js";
-import { Browser, chromium, LaunchOptions, Page, Response } from "playwright";
+import {
+  Browser,
+  BrowserContext,
+  chromium,
+  LaunchOptions,
+  Page,
+  Response,
+} from "playwright";
 import {
   LOG_DEBUG,
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
@@ -32,18 +39,19 @@ async function getFileLocationFromIgram(url: string) {
   };
 
   browser = await chromium.launch(browserOptions);
+  const context = await browser.newContext({ recordVideo: { dir: "videos/" } });
 
   try {
     LOG_DEBUG &&
       logger.debug(`Browser options: ${JSON.stringify(browserOptions)}`);
 
     LOG_DEBUG && logger.debug(`Launching browser`);
-    page = await executePageCreationWithTimeout(browser, "Handle igram url");
+    page = await executePageCreationWithTimeout(context, "Handle igram url");
 
     // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
     if (url.includes("/share/reel/")) {
       const redirectedPage = await executePageCreationWithTimeout(
-        browser,
+        context,
         "Handle /share/reel/ link"
       );
       await redirectedPage.goto(url);
@@ -74,6 +82,7 @@ async function getFileLocationFromIgram(url: string) {
       logger.error(
         `The service IGRAM returned an error ${JSON.stringify(error.stack)}`
       );
+    await context.close();
     await browser.close();
     browser = null;
     page = null;
@@ -85,6 +94,8 @@ async function getFileLocationFromIgram(url: string) {
     throw new Error("Не удалось получить ссылку из IGRAM");
   }
 
+  await page.waitForTimeout(5000);
+  await context.close();
   await browser.close();
   return href;
 }
@@ -123,14 +134,14 @@ export async function igramApiDownloadVideo(
 }
 
 async function executePageCreationWithTimeout(
-  browser: Browser,
+  context: BrowserContext,
   operationName: string
 ): Promise<Page> {
   try {
     LOG_DEBUG &&
       logger.debug(`Creating new Chromium page for: ${operationName}`);
     const page: Page = await Promise.race([
-      browser.newPage(),
+      context.newPage(),
       new Promise<Page>((_, reject) =>
         setTimeout(
           () => reject(new Error(`${operationName} timeout after 10 seconds`)),
@@ -140,8 +151,8 @@ async function executePageCreationWithTimeout(
     ]);
     return page;
   } catch (error) {
-    if (browser) {
-      await browser.close();
+    if (context) {
+      await context.close();
     }
     throw new Error(`Failed to create Chromium page for: ${operationName}`);
   }
