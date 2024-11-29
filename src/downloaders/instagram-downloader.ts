@@ -39,19 +39,18 @@ async function getFileLocationFromIgram(url: string) {
   };
 
   browser = await chromium.launch(browserOptions);
-  const context = await browser.newContext({ recordVideo: { dir: "videos/" },  });
 
   try {
     LOG_DEBUG &&
       logger.debug(`Browser options: ${JSON.stringify(browserOptions)}`);
 
     LOG_DEBUG && logger.debug(`Launching browser`);
-    page = await executePageCreationWithTimeout(context, "Handle igram url");
+    page = await executePageCreationWithTimeout(browser, "Handle igram url");
 
     // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
     if (url.includes("/share/reel/")) {
       const redirectedPage = await executePageCreationWithTimeout(
-        context,
+        browser,
         "Handle /share/reel/ link"
       );
       await redirectedPage.goto(url);
@@ -82,7 +81,6 @@ async function getFileLocationFromIgram(url: string) {
       logger.error(
         `The service IGRAM returned an error ${JSON.stringify(error.stack)}`
       );
-    await context.close();
     await browser.close();
     browser = null;
     page = null;
@@ -95,7 +93,6 @@ async function getFileLocationFromIgram(url: string) {
   }
 
   await page.waitForTimeout(5000);
-  await context.close();
   await browser.close();
   return href;
 }
@@ -134,12 +131,12 @@ export async function igramApiDownloadVideo(
 }
 
 async function executePageCreationWithTimeout(
-  context: BrowserContext,
+  browser: Browser,
   operationName: string
 ): Promise<Page> {
   LOG_DEBUG && logger.debug(`Creating new Chromium page for: ${operationName}`);
   const page: Page = await Promise.race([
-    context.newPage(),
+    browser.newPage(),
     new Promise<Page>((_, reject) =>
       setTimeout(
         () => reject(new Error(`${operationName} timeout after 10 seconds`)),
