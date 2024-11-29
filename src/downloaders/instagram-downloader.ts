@@ -60,23 +60,17 @@ async function getFileLocationFromIgram(url: string) {
   await page.click(".search-form__button");
 
   try {
-    LOG_DEBUG && logger.debug(`Waiting for search result`);
-    await page.waitForSelector("text=Search Result");
     LOG_DEBUG && logger.debug(`Waiting for media content image`);
     await page.waitForSelector(".media-content__image");
     LOG_DEBUG && logger.debug(`Waiting for media content info`);
     await page.waitForSelector(".media-content__info");
   } catch (error) {
-    LOG_DEBUG && logger.debug(`Getting error status`);
-    await page.waitForSelector(".search-result .error-message");
-    const errorMessage = await page.evaluate(() => {
-      const errorMessage = document.querySelector(
-        ".search-result .error-message"
-      )?.textContent;
-      return errorMessage;
-    });
-    logger.error(`The service IGRAM returned an error: ${errorMessage}`);
-    throw new Error(`Произошла ошибка в сервисе IGRAM: ${errorMessage}`);
+    LOG_DEBUG && logger.error(`The service IGRAM returned an error`);
+    await page.screenshot({ path: "screenshot-error.png" });
+    await browser.close();
+    browser = null;
+    page = null;
+    throw new Error(`Произошла ошибка в сервисе IGRAM`);
   }
 
   href = await getHrefFromIgram(page, browser);
