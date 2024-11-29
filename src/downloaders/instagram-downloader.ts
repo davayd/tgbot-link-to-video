@@ -4,13 +4,7 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import { FileType } from "../models";
 import { logger } from "../utils/winston-logger.js";
-import {
-  Browser,
-  chromium,
-  LaunchOptions,
-  Page,
-  BrowserContext,
-} from "playwright";
+import { Browser, chromium, LaunchOptions, Page, Response } from "playwright";
 import {
   LOG_DEBUG,
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
@@ -27,7 +21,6 @@ async function getFileLocationFromIgram(url: string) {
   let browser: Browser | null = null;
   let href: string | null = null;
   let page: Page | null = null;
-  let context: BrowserContext | null = null;
 
   const browserOptions: LaunchOptions = {
     ...(PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
@@ -39,7 +32,6 @@ async function getFileLocationFromIgram(url: string) {
   };
 
   browser = await chromium.launch(browserOptions);
-  context = await browser.newContext();
 
   try {
     LOG_DEBUG &&
@@ -59,10 +51,6 @@ async function getFileLocationFromIgram(url: string) {
       await redirectedPage.close();
     }
 
-    context.on("page", async (newPage) => {
-      await newPage.close();
-    });
-
     LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
     await page.goto(igramUrl);
 
@@ -72,32 +60,29 @@ async function getFileLocationFromIgram(url: string) {
     LOG_DEBUG && logger.debug(`Filling search form with ${url}`);
     await page.fill("#search-form-input", url);
 
+    LOG_DEBUG && logger.debug(`Waiting for response from api.igram.world`);
+    const promise = page.waitForResponse("https://api.igram.world/api/convert");
+
     LOG_DEBUG && logger.debug(`Clicking search button`);
     await page.click(".search-form__button");
 
-    LOG_DEBUG && logger.debug(`Waiting for media content image`);
-    await page.waitForSelector(".media-content__image", { timeout: 100000 });
-    LOG_DEBUG && logger.debug(`Waiting for media content info`);
-    await page.waitForSelector(".media-content__info", { timeout: 100000 });
+    LOG_DEBUG && logger.debug(`Getting link from promise response`);
+    const promiseResponse = await promise;
+    href = await getHrefFromIgram(promiseResponse);
   } catch (error: any) {
     LOG_DEBUG &&
       logger.error(
         `The service IGRAM returned an error ${JSON.stringify(error.stack)}`
       );
-    if (page) {
-      await page.screenshot({ path: "screenshot-error.png" });
-    }
     await browser.close();
     browser = null;
     page = null;
     throw new Error(`Произошла ошибка в сервисе IGRAM`);
   }
 
-  href = await getHrefFromIgram(page, browser);
-
   if (!href) {
-    logger.error(`Failed to get HREF from igram`);
-    throw new Error("Failed to get HREF from igram");
+    LOG_DEBUG && logger.error(`Failed to get HREF from igram`);
+    throw new Error("Не удалось получить ссылку из IGRAM");
   }
 
   await browser.close();
@@ -112,7 +97,7 @@ export async function igramApiDownloadVideo(
     return getFileLocationFromIgram(url);
   };
   const location = await retryAsync<string>(createAsyncRequest, {
-    retry: 3,
+    retry: 2,
     delay: 3000,
   });
 
@@ -162,31 +147,17 @@ async function executePageCreationWithTimeout(
   }
 }
 
-async function getHrefFromIgram(
-  page: Page,
-  browser: Browser
-): Promise<string | null> {
-  LOG_DEBUG && logger.debug(`Getting href from igram`);
-  try {
-    const href: string | null = await Promise.race([
-      await page.evaluate(() => {
-        const link = document.querySelector(".media-content__info a");
-        return link ? link.getAttribute("href") : null;
-      }),
-      new Promise<string>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(new Error(`Get href from igram timeout after 10 seconds`)),
-          10000
-        )
-      ),
-    ]);
-
-    return href;
-  } catch (error) {
-    if (browser) {
-      await browser.close();
-    }
-    throw new Error(`Failed to get href from igram`);
+async function getHrefFromIgram(response: Response): Promise<string | null> {
+  const body: Buffer = await response.body();
+  const json = JSON.parse(body.toString("utf-8"));
+  LOG_DEBUG && logger.debug(`Response JSON: ${JSON.stringify(json)}`);
+  if (
+    json.url &&
+    Array.isArray(json.url) &&
+    json.url.length > 0 &&
+    json.url[0].url
+  ) {
+    return json.url[0].url;
   }
+  return null;
 }
