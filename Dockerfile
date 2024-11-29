@@ -27,7 +27,7 @@ RUN apk update && apk add --no-cache \
     py3-pip \ 
     py3-setuptools \
     libxinerama \
-    chromium \
+    chromium=130.0.6723.31 \
     ca-certificates \
     nano
 
