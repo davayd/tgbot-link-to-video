@@ -15,7 +15,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: [self-hosted, raspberry-ga]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/tmp'
 
     steps:
       - uses: actions/checkout@v4
@@ -38,9 +38,9 @@ jobs:
       - name: Build and start containers
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.FORCE_CACHE }}" == "true" ]]; then
-            docker compose build --no-cache --pull
+            docker compose build --no-cache
           else
-            docker compose build --pull
+            docker compose build
           fi
           docker compose up -d --remove-orphans
 
