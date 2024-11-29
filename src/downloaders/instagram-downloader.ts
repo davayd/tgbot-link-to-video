@@ -39,7 +39,7 @@ async function getFileLocationFromIgram(url: string) {
   };
 
   browser = await chromium.launch(browserOptions);
-  const context = await browser.newContext({ recordVideo: { dir: "videos/" } });
+  const context = await browser.newContext({ recordVideo: { dir: "videos/" },  });
 
   try {
     LOG_DEBUG &&
@@ -137,25 +137,17 @@ async function executePageCreationWithTimeout(
   context: BrowserContext,
   operationName: string
 ): Promise<Page> {
-  try {
-    LOG_DEBUG &&
-      logger.debug(`Creating new Chromium page for: ${operationName}`);
-    const page: Page = await Promise.race([
-      context.newPage(),
-      new Promise<Page>((_, reject) =>
-        setTimeout(
-          () => reject(new Error(`${operationName} timeout after 10 seconds`)),
-          10000
-        )
-      ),
-    ]);
-    return page;
-  } catch (error) {
-    if (context) {
-      await context.close();
-    }
-    throw new Error(`Failed to create Chromium page for: ${operationName}`);
-  }
+  LOG_DEBUG && logger.debug(`Creating new Chromium page for: ${operationName}`);
+  const page: Page = await Promise.race([
+    context.newPage(),
+    new Promise<Page>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`${operationName} timeout after 10 seconds`)),
+        10000
+      )
+    ),
+  ]);
+  return page;
 }
 
 async function getHrefFromIgram(response: Response): Promise<string | null> {
