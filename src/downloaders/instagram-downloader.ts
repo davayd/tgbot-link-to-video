@@ -4,7 +4,13 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import { FileType } from "../models";
 import { logger } from "../utils/winston-logger.js";
-import { Browser, chromium, LaunchOptions, Page } from "playwright";
+import {
+  Browser,
+  chromium,
+  LaunchOptions,
+  Page,
+  BrowserContext,
+} from "playwright";
 import {
   LOG_DEBUG,
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
@@ -21,6 +27,7 @@ async function getFileLocationFromIgram(url: string) {
   let browser: Browser | null = null;
   let href: string | null = null;
   let page: Page | null = null;
+  let context: BrowserContext | null = null;
 
   const browserOptions: LaunchOptions = {
     ...(PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
@@ -30,43 +37,56 @@ async function getFileLocationFromIgram(url: string) {
     headless: true,
     timeout: 10000,
   };
-  LOG_DEBUG &&
-    logger.debug(`Browser options: ${JSON.stringify(browserOptions)}`);
 
-  LOG_DEBUG && logger.debug(`Launching browser`);
   browser = await chromium.launch(browserOptions);
-
-  // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
-  if (url.includes("/share/reel/")) {
-    page = await executePageCreationWithTimeout(
-      browser,
-      "Handle /share/reel/ link"
-    );
-    await page.goto(url);
-    url = page.url();
-  }
-
-  page = await executePageCreationWithTimeout(browser, "Handle igram url");
-
-  LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
-  await page.goto(igramUrl);
-
-  LOG_DEBUG && logger.debug(`Setting viewport size to 1080x1024`);
-  await page.setViewportSize({ width: 1080, height: 1024 });
-
-  LOG_DEBUG && logger.debug(`Filling search form with ${url}`);
-  await page.fill("#search-form-input", url);
-  LOG_DEBUG && logger.debug(`Clicking search button`);
-  await page.click(".search-form__button");
+  context = await browser.newContext();
 
   try {
+    LOG_DEBUG &&
+      logger.debug(`Browser options: ${JSON.stringify(browserOptions)}`);
+
+    LOG_DEBUG && logger.debug(`Launching browser`);
+    page = await executePageCreationWithTimeout(browser, "Handle igram url");
+
+    // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
+    if (url.includes("/share/reel/")) {
+      const redirectedPage = await executePageCreationWithTimeout(
+        browser,
+        "Handle /share/reel/ link"
+      );
+      await redirectedPage.goto(url);
+      url = redirectedPage.url();
+      await redirectedPage.close();
+    }
+
+    context.on("page", async (newPage) => {
+      await newPage.close();
+    });
+
+    LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
+    await page.goto(igramUrl);
+
+    LOG_DEBUG && logger.debug(`Setting viewport size to 1080x1024`);
+    await page.setViewportSize({ width: 1080, height: 1024 });
+
+    LOG_DEBUG && logger.debug(`Filling search form with ${url}`);
+    await page.fill("#search-form-input", url);
+
+    LOG_DEBUG && logger.debug(`Clicking search button`);
+    await page.click(".search-form__button");
+
     LOG_DEBUG && logger.debug(`Waiting for media content image`);
-    await page.waitForSelector(".media-content__image");
+    await page.waitForSelector(".media-content__image", { timeout: 100000 });
     LOG_DEBUG && logger.debug(`Waiting for media content info`);
-    await page.waitForSelector(".media-content__info");
-  } catch (error) {
-    LOG_DEBUG && logger.error(`The service IGRAM returned an error`);
-    await page.screenshot({ path: "screenshot-error.png" });
+    await page.waitForSelector(".media-content__info", { timeout: 100000 });
+  } catch (error: any) {
+    LOG_DEBUG &&
+      logger.error(
+        `The service IGRAM returned an error ${JSON.stringify(error.stack)}`
+      );
+    if (page) {
+      await page.screenshot({ path: "screenshot-error.png" });
+    }
     await browser.close();
     browser = null;
     page = null;
