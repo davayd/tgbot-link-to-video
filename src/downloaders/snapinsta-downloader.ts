@@ -23,7 +23,7 @@ const browserOptions: LaunchOptions = {
     executablePath: PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
   }),
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  headless: false,
+  headless: true,
   timeout: 10000,
 };
 let page: Page | null = null;
