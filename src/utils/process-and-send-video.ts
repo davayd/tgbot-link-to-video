@@ -1,12 +1,13 @@
 import path from "path";
 import fs from "fs/promises";
 import { logger } from "./winston-logger.js";
-import { igramApiDownloadVideo } from "../downloaders/instagram-downloader.js";
+import { igramApiDownloadVideo } from "../downloaders/igram-downloader.js";
 import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
-import { FileType, ProcessVideoContext } from "../models.js";
+import { DownloaderType, FileType, ProcessVideoContext } from "../models.js";
 import { LOG_DEBUG } from "../constants.js";
 import TelegramBot from "node-telegram-bot-api";
 import { ssstikDownloadVideo } from "../downloaders/tiktok-downloader.js";
+import { snapinstaDownloadVideo } from "../downloaders/snapinsta-downloader.js";
 
 export async function processAndSendVideo({
   bot,
@@ -97,7 +98,7 @@ async function sendFile(
 }
 
 async function tryDownload(
-  downloader: string,
+  downloader: DownloaderType,
   url: string,
   fileDir: string,
   fileName: string
@@ -115,6 +116,12 @@ async function tryDownload(
     fileType = fileTypeFromDownloader;
   } else if (downloader === "ssstik") {
     const { fileType: fileTypeFromDownloader } = await ssstikDownloadVideo(
+      url,
+      path.join(fileDir, fileName)
+    );
+    fileType = fileTypeFromDownloader;
+  } else if (downloader === "snapinsta") {
+    const { fileType: fileTypeFromDownloader } = await snapinstaDownloadVideo(
       url,
       path.join(fileDir, fileName)
     );

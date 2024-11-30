@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { createWriteStream } from "fs";
 import { pipeline } from "stream";
 import { promisify } from "util";
-import { FileType } from "../models";
+import { FileType } from "../models.js";
 import { logger } from "../utils/winston-logger.js";
 import {
   Browser,
