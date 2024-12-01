@@ -105,11 +105,11 @@ export async function sssinstagramDownloadVideo(
     return getFileLocation(url);
   };
   const serviceResult = await retryAsync<string>(createAsyncRequest, {
-    retry: 1,
+    retry: 2,
     delay: 3000,
   });
 
-  const response = await fetch(serviceResult[0]);
+  const response = await fetch(serviceResult);
   if (!response.ok)
     throw new Error(`Failed to download video: ${response.statusText}`);
 
