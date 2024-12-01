@@ -22,5 +22,9 @@ function isTiktokUrl(url: string) {
 }
 
 export function getDownloaderType(url: string): DownloaderType {
-  return isInstagramUrl(url) ? "igram" : isTiktokUrl(url) ? "ssstik" : "ytdlp";
+  return isInstagramUrl(url)
+    ? "sssinstagram"
+    : isTiktokUrl(url)
+    ? "ssstik"
+    : "ytdlp";
 }

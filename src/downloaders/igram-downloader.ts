@@ -82,6 +82,7 @@ async function getFileLocationFromIgram(url: string) {
 
     LOG_DEBUG && logger.debug(`Clicking search button`);
     await page.click(".search-form__button");
+    await page.bringToFront();
     const href = await hrefPromise;
 
     if (!href) {
@@ -90,8 +91,11 @@ async function getFileLocationFromIgram(url: string) {
     }
 
     return href;
+  } catch (error: any) {
+    LOG_DEBUG && logger.error(`ERROR: ${error.stack}`);
+    throw error;
   } finally {
-    await browser.close();
+    await browser?.close();
     browser = null;
     page = null;
   }
