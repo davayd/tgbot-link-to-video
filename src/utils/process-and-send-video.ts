@@ -8,6 +8,7 @@ import { LOG_DEBUG } from "../constants.js";
 import TelegramBot from "node-telegram-bot-api";
 import { ssstikDownloadVideo } from "../downloaders/tiktok-downloader.js";
 import { snapinstaDownloadVideo } from "../downloaders/snapinsta-downloader.js";
+import { sssinstagramDownloadVideo } from "../downloaders/sssinstagram-downloader.js";
 
 export async function processAndSendVideo({
   bot,
@@ -105,27 +106,36 @@ async function tryDownload(
 ) {
   let fileType: FileType = "mp4";
 
-  if (downloader === "ytdlp") {
-    await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
-    fileType = "mp4";
-  } else if (downloader === "igram") {
-    const { fileType: fileTypeFromDownloader } = await igramApiDownloadVideo(
-      url,
-      path.join(fileDir, fileName)
-    );
-    fileType = fileTypeFromDownloader;
-  } else if (downloader === "ssstik") {
-    const { fileType: fileTypeFromDownloader } = await ssstikDownloadVideo(
-      url,
-      path.join(fileDir, fileName)
-    );
-    fileType = fileTypeFromDownloader;
-  } else if (downloader === "snapinsta") {
-    const { fileType: fileTypeFromDownloader } = await snapinstaDownloadVideo(
-      url,
-      path.join(fileDir, fileName)
-    );
-    fileType = fileTypeFromDownloader;
+  switch (downloader) {
+    case "ytdlp":
+      await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
+      break;
+    case "igram":
+      ({ fileType } = await igramApiDownloadVideo(
+        url,
+        path.join(fileDir, fileName)
+      ));
+      break;
+    case "ssstik":
+      ({ fileType } = await ssstikDownloadVideo(
+        url,
+        path.join(fileDir, fileName)
+      ));
+      break;
+    case "snapinsta":
+      ({ fileType } = await snapinstaDownloadVideo(
+        url,
+        path.join(fileDir, fileName)
+      ));
+      break;
+    case "sssinstagram":
+      ({ fileType } = await sssinstagramDownloadVideo(
+        url,
+        path.join(fileDir, fileName)
+      ));
+      break;
+    default:
+      throw new Error(`Unsupported downloader: ${downloader}`);
   }
 
   return { fileType };
