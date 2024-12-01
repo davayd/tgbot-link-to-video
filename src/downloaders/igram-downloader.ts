@@ -62,15 +62,13 @@ async function getFileLocationFromIgram(url: string) {
 
     LOG_DEBUG && logger.debug(`Waiting for response from api.igram.world`);
 
-    href = await Promise.race([
-      new Promise<string | null>((_, reject) =>
-        setTimeout(
-          () => reject(new Error(`Timeout after 100 seconds`)),
-          100 * 1000
-        )
+    const hrefPromise = Promise.race([
+      new Promise<null>((resolve, _) =>
+        setTimeout(() => resolve(null), 200 * 1000)
       ),
       new Promise<string | null>((resolve, _) => {
         page?.on("requestfinished", async (request) => {
+          LOG_DEBUG && logger.debug(`Request finished: ${request.url()}`);
           if (request.url().includes("https://api.igram.world/api/convert")) {
             const response = await request.response();
             if (response) {
@@ -84,6 +82,7 @@ async function getFileLocationFromIgram(url: string) {
 
     LOG_DEBUG && logger.debug(`Clicking search button`);
     await page.click(".search-form__button");
+    const href = await hrefPromise;
 
     if (!href) {
       LOG_DEBUG && logger.error(`Failed to get HREF from igram`);
@@ -106,7 +105,7 @@ export async function igramApiDownloadVideo(
     return getFileLocationFromIgram(url);
   };
   const location = await retryAsync<string>(createAsyncRequest, {
-    retry: 2,
+    retry: 1,
     delay: 3000,
   });
 
