@@ -14,32 +14,33 @@ import { removeConsent } from "./browser-helpers.js";
 
 const streamPipeline = promisify(pipeline);
 
-const IG_URL_REELS = "https://snapinsta.app/";
+const IG_URL_REELS = "https://snapinsta.app";
 const SERVICE_NAME = "SNAPINSTA";
-
-let browser: Browser | null = null;
-const browserOptions: LaunchOptions = {
-  ...(PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
-    executablePath: PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
-  }),
-  args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  headless: true,
-  timeout: 10000,
-};
-let page: Page | null = null;
+const SBR_CDP =
+  "wss://brd-customer-hl_7e8d2dcd-zone-scraping_browser1:t2sor5cxaflb@brd.superproxy.io:9222";
 
 async function getFileLocation(userLink: string) {
-  if (!browser) {
-    LOG_DEBUG && logger.debug(`Launching browser`);
-    browser = await chromium.launch(browserOptions);
-  }
-  if (!page) {
-    LOG_DEBUG && logger.debug(`Creating new page`);
-    page = await executePageCreationWithTimeout(
-      browser,
-      `Handle ${SERVICE_NAME} url`
-    );
-  }
+  let browser: Browser | null = null;
+  let page: Page | null = null;
+
+  const browserOptions: LaunchOptions = {
+    ...(PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
+      executablePath: PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+    }),
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: true,
+    timeout: 10000,
+  };
+
+  LOG_DEBUG && logger.debug(`Launching browser`);
+  // browser = await chromium.launch(browserOptions);
+  browser = await chromium.connectOverCDP(SBR_CDP);
+
+  LOG_DEBUG && logger.debug(`Creating new page`);
+  page = await executePageCreationWithTimeout(
+    browser,
+    `Handle ${SERVICE_NAME} url`
+  );
 
   let serviceResult: [string, FileType] | null = null;
   try {
@@ -65,6 +66,7 @@ async function getFileLocation(userLink: string) {
     LOG_DEBUG && logger.debug(`Setting viewport size to 1080x1024`);
     await page.setViewportSize({ width: 1080, height: 1024 });
 
+    await page.screenshot({ path: "screenshot.png" });
     await removeConsent(page);
 
     LOG_DEBUG && logger.debug(`Filling search form with ${userLink}`);
@@ -89,6 +91,13 @@ async function getFileLocation(userLink: string) {
     LOG_DEBUG && logger.debug(`Download link: ${result}`);
 
     serviceResult = result;
+
+    if (!serviceResult) {
+      LOG_DEBUG && logger.error(`Failed to get HREF from ${SERVICE_NAME}`);
+      throw new Error(`Не удалось получить ссылку из ${SERVICE_NAME}`);
+    }
+
+    return serviceResult;
   } catch (error: any) {
     LOG_DEBUG &&
       logger.error(
@@ -97,16 +106,9 @@ async function getFileLocation(userLink: string) {
         )}`
       );
     throw new Error(`Произошла ошибка в сервисе ${SERVICE_NAME}`);
+  } finally {
+    await browser?.close();
   }
-
-  if (!serviceResult) {
-    LOG_DEBUG && logger.error(`Failed to get HREF from ${SERVICE_NAME}`);
-    throw new Error(`Не удалось получить ссылку из ${SERVICE_NAME}`);
-  }
-
-  await page.close();
-  page = null;
-  return serviceResult;
 }
 
 export async function snapinstaDownloadVideo(
@@ -119,7 +121,7 @@ export async function snapinstaDownloadVideo(
   const serviceResult = await retryAsync<[string, FileType]>(
     createAsyncRequest,
     {
-      retry: 2,
+      retry: 1,
       delay: 3000,
     }
   );

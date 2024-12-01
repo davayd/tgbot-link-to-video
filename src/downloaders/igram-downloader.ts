@@ -4,14 +4,7 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import { FileType } from "../models.js";
 import { logger } from "../utils/winston-logger.js";
-import {
-  Browser,
-  BrowserContext,
-  chromium,
-  LaunchOptions,
-  Page,
-  Response,
-} from "playwright";
+import { Browser, chromium, LaunchOptions, Page, Response } from "playwright";
 import {
   LOG_DEBUG,
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
@@ -68,33 +61,41 @@ async function getFileLocationFromIgram(url: string) {
     await page.fill("#search-form-input", url);
 
     LOG_DEBUG && logger.debug(`Waiting for response from api.igram.world`);
-    const promise = page.waitForResponse("https://api.igram.world/api/convert");
+
+    href = await Promise.race([
+      new Promise<string | null>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`Timeout after 100 seconds`)),
+          100 * 1000
+        )
+      ),
+      new Promise<string | null>((resolve, _) => {
+        page?.on("requestfinished", async (request) => {
+          if (request.url().includes("https://api.igram.world/api/convert")) {
+            const response = await request.response();
+            if (response) {
+              const hrefFromResponse = await getHrefFromIgram(response);
+              resolve(hrefFromResponse);
+            }
+          }
+        });
+      }),
+    ]);
 
     LOG_DEBUG && logger.debug(`Clicking search button`);
     await page.click(".search-form__button");
 
-    LOG_DEBUG && logger.debug(`Getting link from promise response`);
-    const promiseResponse = await promise;
-    href = await getHrefFromIgram(promiseResponse);
-  } catch (error: any) {
-    LOG_DEBUG &&
-      logger.error(
-        `The service IGRAM returned an error ${JSON.stringify(error.stack)}`
-      );
+    if (!href) {
+      LOG_DEBUG && logger.error(`Failed to get HREF from igram`);
+      throw new Error("Не удалось получить ссылку из IGRAM");
+    }
+
+    return href;
+  } finally {
     await browser.close();
     browser = null;
     page = null;
-    throw new Error(`Произошла ошибка в сервисе IGRAM`);
   }
-
-  if (!href) {
-    LOG_DEBUG && logger.error(`Failed to get HREF from igram`);
-    throw new Error("Не удалось получить ссылку из IGRAM");
-  }
-
-  await page.waitForTimeout(5000);
-  await browser.close();
-  return href;
 }
 
 export async function igramApiDownloadVideo(
