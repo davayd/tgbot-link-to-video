@@ -10,7 +10,10 @@ import {
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
 } from "../constants.js";
 import { retryAsync } from "../utils/retry-async.js";
-import { removeConsent } from "./browser-helpers.js";
+import {
+  executePageCreationWithTimeout,
+  removeConsent,
+} from "./browser-helpers.js";
 
 const streamPipeline = promisify(pipeline);
 
@@ -136,23 +139,6 @@ export async function snapinstaDownloadVideo(
   );
 
   return { fileType: serviceResult[1] };
-}
-
-async function executePageCreationWithTimeout(
-  browser: Browser,
-  operationName: string
-): Promise<Page> {
-  LOG_DEBUG && logger.debug(`Creating new Chromium page for: ${operationName}`);
-  const page: Page = await Promise.race([
-    browser.newPage(),
-    new Promise<Page>((_, reject) =>
-      setTimeout(
-        () => reject(new Error(`${operationName} timeout after 10 seconds`)),
-        10000
-      )
-    ),
-  ]);
-  return page;
 }
 
 async function removeAd(page: Page) {

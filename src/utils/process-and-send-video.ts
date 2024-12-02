@@ -10,6 +10,13 @@ import { ssstikDownloadVideo } from "../downloaders/tiktok-downloader.js";
 import { snapinstaDownloadVideo } from "../downloaders/snapinsta-downloader.js";
 import { sssinstagramDownloadVideo } from "../downloaders/sssinstagram-downloader.js";
 
+type InstagramDownloader = "sssinstagram" | "igram" | "snapinsta";
+const instagramDownloaders: InstagramDownloader[] = [
+  "sssinstagram",
+  "igram",
+  "snapinsta",
+];
+
 export async function processAndSendVideo({
   bot,
   url,
@@ -98,6 +105,49 @@ async function sendFile(
   }
 }
 
+async function tryDownloadInstagram(
+  url: string,
+  fileDir: string,
+  fileName: string
+) {
+  let lastError: Error | null = null;
+
+  for (const downloader of instagramDownloaders) {
+    try {
+      let fileType: FileType = "mp4";
+
+      switch (downloader) {
+        case "sssinstagram":
+          ({ fileType } = await sssinstagramDownloadVideo(
+            url,
+            path.join(fileDir, fileName)
+          ));
+          break;
+        case "igram":
+          ({ fileType } = await igramApiDownloadVideo(
+            url,
+            path.join(fileDir, fileName)
+          ));
+          break;
+        case "snapinsta":
+          ({ fileType } = await snapinstaDownloadVideo(
+            url,
+            path.join(fileDir, fileName)
+          ));
+          break;
+      }
+
+      return { fileType };
+    } catch (error) {
+      lastError = error as Error;
+      console.log(`Failed to download with ${downloader}:`, error);
+      continue;
+    }
+  }
+
+  throw lastError || new Error("All Instagram downloaders failed");
+}
+
 async function tryDownload(
   downloader: DownloaderType,
   url: string,
@@ -106,30 +156,16 @@ async function tryDownload(
 ) {
   let fileType: FileType = "mp4";
 
+  if (url.includes("instagram.com")) {
+    return tryDownloadInstagram(url, fileDir, fileName);
+  }
+
   switch (downloader) {
     case "ytdlp":
       await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
       break;
-    case "igram":
-      ({ fileType } = await igramApiDownloadVideo(
-        url,
-        path.join(fileDir, fileName)
-      ));
-      break;
     case "ssstik":
       ({ fileType } = await ssstikDownloadVideo(
-        url,
-        path.join(fileDir, fileName)
-      ));
-      break;
-    case "snapinsta":
-      ({ fileType } = await snapinstaDownloadVideo(
-        url,
-        path.join(fileDir, fileName)
-      ));
-      break;
-    case "sssinstagram":
-      ({ fileType } = await sssinstagramDownloadVideo(
         url,
         path.join(fileDir, fileName)
       ));
