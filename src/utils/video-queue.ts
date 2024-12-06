@@ -3,6 +3,7 @@ import { ProcessVideoContext } from "../models.js";
 import { processAndSendVideo } from "./process-and-send-video.js";
 import { logger } from "./winston-logger.js";
 import { LOG_DEBUG } from "../constants.js";
+import { retryAsync } from "./retry-async.js";
 
 const queue = new PQueue({ concurrency: 1 });
 
@@ -27,7 +28,10 @@ queue.on("error", (error: any) => {
 export function addToVideoQueue(context: ProcessVideoContext): void {
   queue.add(async () => {
     try {
-      await processAndSendVideo(context);
+      await retryAsync(() => processAndSendVideo(context), {
+        retry: 3,
+        delay: 1000,
+      });
     } catch (error: any) {
       logger.error(`Error in addToVideoQueue: ${error.stack}`);
     }
