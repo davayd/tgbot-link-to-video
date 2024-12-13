@@ -71,10 +71,10 @@ export async function processAndSendVideo({
     await fs.unlink(filePath);
     await bot.deleteMessage(chatId, originalMessageId);
   } catch (error: any) {
-    let errorMessage = error.message;
-    await bot.sendMessage(chatId, `${errorMessage}`, {
-      reply_to_message_id: originalMessageId,
-    });
+    // let errorMessage = error.message;
+    // await bot.sendMessage(chatId, `${errorMessage}`, {
+    //   reply_to_message_id: originalMessageId,
+    // });
     logger.error(`Error in processAndSendVideo: ${error.stack}`);
   }
 }

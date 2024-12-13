@@ -78,8 +78,6 @@ async function getFileLocation(userLink: string) {
         return href ?? null;
       }
     );
-    LOG_DEBUG && logger.debug(`Download link: ${result}`);
-
     serviceResult = result;
 
     if (!serviceResult) {
