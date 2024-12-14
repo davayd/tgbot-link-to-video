@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: [self-hosted, raspberry-ga]
+    runs-on: [self-hosted]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/tmp'
 
     steps:
