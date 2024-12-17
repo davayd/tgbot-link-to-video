@@ -2,15 +2,6 @@ name: CI/CD
 
 on:
   workflow_dispatch:
-    inputs:
-      FORCE_CACHE:
-        description: "Force rebuild without cache"
-        required: true
-        default: "false"
-        type: choice
-        options:
-          - true
-          - false
 
 jobs:
   build-and-deploy:
