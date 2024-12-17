@@ -37,18 +37,11 @@ jobs:
 
       - name: Build and start containers
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.FORCE_CACHE }}" == "true" ]]; then
-            docker compose build --no-cache
-          else
-            docker compose build
-          fi
+          docker compose build
           docker compose up -d --remove-orphans
 
       - name: Check containers status
         run: docker compose ps
-
-      - name: Delete unused images
-        run: docker system prune -a -f
 
       - name: Clean up
         run: rm -rf ./dist

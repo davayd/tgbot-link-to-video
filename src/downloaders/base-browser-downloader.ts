@@ -8,13 +8,13 @@ import { retryAsync } from "../utils/retry-async.js";
 
 export class BaseBrowserDownloader {
   private browser: Browser | null = null;
-  private browserOptions = {
+  private browserOptions: LaunchOptions = {
     ...(PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
       executablePath: PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
     }),
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: true,
-    timeout: 10000,
+    timeout: 60 * 1000,
   };
 
   constructor(
@@ -114,7 +114,7 @@ export class BaseBrowserDownloader {
           setTimeout(
             () =>
               reject(new Error(`Launching browser timeout after 10 seconds`)),
-            10 * 1000
+            60 * 1000
           )
         ),
       ]);
