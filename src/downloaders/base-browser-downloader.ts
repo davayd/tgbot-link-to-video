@@ -31,15 +31,14 @@ export class BaseBrowserDownloader {
     this.browser = await this.executeBrowserLaunchWithTimeout(
       this.browserOptions
     );
+    LOG_DEBUG && logger.debug(`Browser launched`);
     return this.browser;
   }
 
   private async createPage(browser: Browser) {
     LOG_DEBUG && logger.debug(`Creating new page`);
-    const page = await this.executePageCreationWithTimeout(
-      browser,
-      `Create page for ${this._serviceName}`
-    );
+    const page = await this.executePageCreationWithTimeout(browser);
+    LOG_DEBUG && logger.debug(`Page created`);
     return page;
   }
 
@@ -69,6 +68,8 @@ export class BaseBrowserDownloader {
 
     if (!result) {
       LOG_DEBUG && logger.error(`Failed to get HREF from ${this._serviceName}`);
+      await browser.close();
+      this.browser = null;
       throw new Error(`Failed to get HREF from ${this._serviceName}`);
     }
 
@@ -79,19 +80,16 @@ export class BaseBrowserDownloader {
   }
 
   private async executePageCreationWithTimeout(
-    browser: Browser,
-    operationName: string
+    browser: Browser
   ): Promise<Page> {
-    LOG_DEBUG &&
-      logger.debug(`Creating new Chromium page for: ${operationName}`);
+    LOG_DEBUG && logger.debug(`Creating new Chromium page`);
     const createAsyncRequest = () =>
       Promise.race([
         browser.newPage(),
         new Promise<Page>((_, reject) =>
           setTimeout(
-            () =>
-              reject(new Error(`${operationName} timeout after 10 seconds`)),
-            10 * 1000
+            () => reject(new Error(`Page creation timeout after 60 seconds`)),
+            60 * 1000
           )
         ),
       ]);
@@ -113,7 +111,7 @@ export class BaseBrowserDownloader {
         new Promise<Browser>((_, reject) =>
           setTimeout(
             () =>
-              reject(new Error(`Launching browser timeout after 10 seconds`)),
+              reject(new Error(`Launching browser timeout after 60 seconds`)),
             60 * 1000
           )
         ),
