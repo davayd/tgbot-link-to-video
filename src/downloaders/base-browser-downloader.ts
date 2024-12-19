@@ -43,40 +43,44 @@ export class BaseBrowserDownloader {
   }
 
   async download(fn: (page: Page) => Promise<string | null>) {
-    const browser = await this.launchBrowser();
+    try {
+      const browser = await this.launchBrowser();
+      this.browser = browser;
 
-    // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
-    // if (userLink.includes("/share/reel/")) {
-    //   const redirectedPage = await executePageCreationWithTimeout(
-    //     browser,
-    //     `Handle /share/reel/ link`
-    //   );
-    //   await redirectedPage.goto(userLink);
-    //   userLink = redirectedPage.url();
-    //   await redirectedPage.close();
-    // }
+      // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
+      // if (userLink.includes("/share/reel/")) {
+      //   const redirectedPage = await executePageCreationWithTimeout(
+      //     browser,
+      //     `Handle /share/reel/ link`
+      //   );
+      //   await redirectedPage.goto(userLink);
+      //   userLink = redirectedPage.url();
+      //   await redirectedPage.close();
+      // }
 
-    const page = await this.createPage(browser);
+      const page = await this.createPage(browser);
 
-    LOG_DEBUG && logger.debug(`Navigating to ${this.serviceLink}`);
-    await page.goto(this.serviceLink);
+      LOG_DEBUG && logger.debug(`Navigating to ${this.serviceLink}`);
+      await page.goto(this.serviceLink);
 
-    LOG_DEBUG && logger.debug(`Setting viewport size to 1080x1024`);
-    await page.setViewportSize({ width: 1080, height: 1024 });
+      LOG_DEBUG && logger.debug(`Setting viewport size to 1080x1024`);
+      await page.setViewportSize({ width: 1080, height: 1024 });
 
-    const result = await fn(page);
+      const result = await fn(page);
 
-    if (!result) {
-      LOG_DEBUG && logger.error(`Failed to get HREF from ${this._serviceName}`);
-      await browser.close();
+      if (!result) {
+        LOG_DEBUG &&
+          logger.error(`Failed to get HREF from ${this._serviceName}`);
+        await browser.close();
+        this.browser = null;
+        throw new Error(`Failed to get HREF from ${this._serviceName}`);
+      }
+
+      return result;
+    } finally {
+      await this.browser?.close();
       this.browser = null;
-      throw new Error(`Failed to get HREF from ${this._serviceName}`);
     }
-
-    await browser.close();
-    this.browser = null;
-
-    return result;
   }
 
   private async executePageCreationWithTimeout(
