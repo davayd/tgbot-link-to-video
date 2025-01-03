@@ -11,15 +11,14 @@ export async function addBotListeners(bot: TelegramBot) {
       const chatId = msg.chat.id;
       const originalMessageId = msg.message_id;
       const url = msg.text;
-      const username =
-        msg.forward_sender_name ?? msg.from?.username ?? "unknown";
+      const user = msg.from;
 
-      if (!url || !isValidUrl(url)) {
+      if (!url || !isValidUrl(url) || !user) {
         return;
       }
 
       logger.info(
-        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${username} \n originalMessageId: ${originalMessageId}`
+        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${user?.username} \n originalMessageId: ${originalMessageId}`
       );
 
       if (!VALID_CHAT_IDS.includes(chatId)) {
@@ -30,9 +29,9 @@ export async function addBotListeners(bot: TelegramBot) {
         bot,
         url,
         chatId,
-        username,
+        user,
         downloader: getDownloaderType(url),
-        originalMessageId,
+        originalMessage: msg,
       });
     } catch (error: any) {
       logger.error(`Error in onText listener: ${error.stack}`);
@@ -41,5 +40,15 @@ export async function addBotListeners(bot: TelegramBot) {
 
   bot.on("webhook_error", (error) => {
     logger.error(`Webhook error: ${error.stack}`);
+  });
+
+  bot.on("text", async (msg) => {
+    const text = msg.text?.toLowerCase() ?? "";
+    if (text === "хотс?") {
+      await bot.sendMessage(
+        msg.chat.id,
+        `@Kudasati @Arti465 @archi_ll @sky_pneuma @ddfanky`
+      );
+    }
   });
 }

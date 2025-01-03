@@ -21,10 +21,11 @@ export async function processAndSendVideo({
   bot,
   url,
   chatId,
-  username,
+  user,
   downloader,
-  originalMessageId,
+  originalMessage,
 }: ProcessVideoContext): Promise<void> {
+  let filePath: string | null = null;
   try {
     // Generate a safe filename
     const fileName = Math.random()
@@ -55,7 +56,7 @@ export async function processAndSendVideo({
     }
 
     // File in format like /usr/src/app/video.mp4
-    const filePath = path.join(fileDir, downloadedFile);
+    filePath = path.join(fileDir, downloadedFile);
     LOG_DEBUG && logger.debug(`FilePath: ${filePath}`);
 
     // Check file size
@@ -67,30 +68,47 @@ export async function processAndSendVideo({
     }
 
     await bot.sendChatAction(chatId, "upload_video");
-    await sendFile(bot, chatId, username, filePath, fileType);
-    await fs.unlink(filePath);
-    await bot.deleteMessage(chatId, originalMessageId);
+    await sendFile(bot, chatId, user, filePath, fileType, originalMessage);
+    await bot.deleteMessage(chatId, originalMessage.message_id);
   } catch (error: any) {
     // let errorMessage = error.message;
     // await bot.sendMessage(chatId, `${errorMessage}`, {
     //   reply_to_message_id: originalMessageId,
     // });
     logger.error(`Error in processAndSendVideo: ${error.stack}`);
+  } finally {
+    if (filePath) {
+      await fs.unlink(filePath);
+    }
   }
 }
 
 async function sendFile(
   bot: TelegramBot,
   chatId: string | number,
-  username: string,
+  user: TelegramBot.User,
   filePath: string,
-  fileType: FileType
+  fileType: FileType,
+  originalMessage: TelegramBot.Message
 ) {
   try {
+    const username = user.username ?? user.first_name;
+
     if (fileType === "mp4") {
       await bot.sendVideo(chatId, filePath, {
         caption: `From @${username} with 💕`,
       });
+
+      // await bot.editMessageMedia(
+      //   {
+      //     type: "video",
+      //     media: `attach://${filePath}`,
+      //   },
+      //   {
+      //     message_id: originalMessage.message_id,
+      //     chat_id: chatId,
+      //   }
+      // );
     } else if (fileType === "jpg") {
       await bot.sendPhoto(chatId, filePath, {
         caption: `From @${username} with 💕`,
