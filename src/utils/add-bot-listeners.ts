@@ -43,11 +43,14 @@ export async function addBotListeners(bot: TelegramBot) {
   });
 
   bot.on("text", async (msg) => {
+    const allMembers = `@Kudasati @Arti465 @archi_ll @sky_pneuma @ddfanky`;
     const text = msg.text?.toLowerCase() ?? "";
+    const username = msg.from?.username;
+
     if (text === "хотс?") {
       await bot.sendMessage(
         msg.chat.id,
-        `@Kudasati @Arti465 @archi_ll @sky_pneuma @ddfanky`
+        allMembers.replace(`@${username}`, "")
       );
     }
   });
