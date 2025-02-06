@@ -19,7 +19,7 @@ export async function addBotListeners(bot: TelegramBot) {
       }
 
       logger.info(
-        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${user?.username} \n originalMessageId: ${originalMessageId}`
+        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${user?.username} \n originalMessageId: ${originalMessageId} \n topicId: ${topicId}`
       );
 
       if (!VALID_CHAT_IDS.includes(chatId)) {
