@@ -24,7 +24,8 @@ async function getFileLocation(userLink: string) {
     await page.click(".form__submit");
 
     LOG_DEBUG && logger.debug(`Getting download link`);
-    await page.waitForSelector("a.button__download");
+    await engine.waitForSelectorWithTimeout(page, "a.button__download");
+
     const result: string | null = await page.$eval(
       "a.button__download",
       (el) => {
