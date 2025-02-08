@@ -23,11 +23,13 @@ async function getFileLocation(userLink: string) {
     LOG_DEBUG && logger.debug(`Clicking search button`);
     await page.click(".form__submit");
 
-    LOG_DEBUG && logger.debug(`Getting download link`);
-    await engine.waitForSelectorWithTimeout(page, "a.button__download");
+    LOG_DEBUG && logger.debug(`Trying to find locator`);
+    const linkLocator = page.locator("a.button__download");
+    await linkLocator.waitFor({ state: "visible", timeout: 60 * 1000 });
+    LOG_DEBUG && logger.debug(`Locator found`);
 
-    const result: string | null = await page.$eval(
-      "a.button__download",
+    LOG_DEBUG && logger.debug(`Getting download link`);
+    const result: string | null = await linkLocator.evaluate(
       (el) => {
         const href = el.getAttribute("href");
         return href ?? null;

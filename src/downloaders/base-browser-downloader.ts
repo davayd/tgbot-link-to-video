@@ -127,17 +127,4 @@ export class BaseBrowserDownloader {
     });
     return browser;
   }
-
-  async waitForSelectorWithTimeout(page: Page, selector: string) {
-    return Promise.race([
-      page.waitForSelector(selector, { timeout: 61 * 1000 }),
-      new Promise<Browser>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(new Error(`Waiting for selector timeout after 60 seconds`)),
-          60 * 1000
-        )
-      ),
-    ]);
-  }
 }
