@@ -4,7 +4,7 @@ import { logger } from "./winston-logger.js";
 import { igramApiDownloadVideo } from "../downloaders/igram-downloader.js";
 import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { DownloaderType, FileType, ProcessVideoContext } from "../models.js";
-import { LOG_DEBUG } from "../constants.js";
+import { LOG_DEBUG, SHOW_USER_CAPTION } from "../constants.js";
 import TelegramBot from "node-telegram-bot-api";
 import { ssstikDownloadVideo } from "../downloaders/tiktok-downloader.js";
 import { snapinstaDownloadVideo } from "../downloaders/snapinsta-downloader.js";
@@ -108,12 +108,13 @@ async function sendFile(
 
     if (fileType === "mp4") {
       await bot.sendVideo(chatId, filePath, {
-        caption: `From @${username} with 💕`,
+        caption: SHOW_USER_CAPTION ? `From @${username} with 💕` : undefined,
         message_thread_id: topicId,
       });
+
     } else if (fileType === "jpg") {
       await bot.sendPhoto(chatId, filePath, {
-        caption: `From @${username} with 💕`,
+        caption: SHOW_USER_CAPTION ? `From @${username} with 💕` : undefined,
         message_thread_id: topicId,
       });
     } else {
