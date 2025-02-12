@@ -7,6 +7,7 @@ import { logger } from "../utils/winston-logger.js";
 import { LOG_DEBUG } from "../constants.js";
 import { retryAsync } from "../utils/retry-async.js";
 import { BaseBrowserDownloader } from "./base-browser-downloader.js";
+import { getFileExtension } from "../utils/is-valid-url.js";
 
 const streamPipeline = promisify(pipeline);
 
@@ -29,12 +30,10 @@ async function getFileLocation(userLink: string) {
     LOG_DEBUG && logger.debug(`Locator found`);
 
     LOG_DEBUG && logger.debug(`Getting download link`);
-    const result: string | null = await linkLocator.evaluate(
-      (el) => {
-        const href = el.getAttribute("href");
-        return href ?? null;
-      }
-    );
+    const result: string | null = await linkLocator.evaluate((el) => {
+      const href = el.getAttribute("href");
+      return href ?? null;
+    });
 
     return result;
   });
@@ -56,10 +55,11 @@ export async function sssinstagramDownloadVideo(
   if (!response.ok)
     throw new Error(`Failed to download video: ${response.statusText}`);
 
+  const fileExtension = getFileExtension(url);
   await streamPipeline(
     response.body,
-    createWriteStream(outputPath + "." + "mp4")
+    createWriteStream(outputPath + "." + fileExtension)
   );
 
-  return { fileType: "mp4" };
+  return { fileType: fileExtension };
 }
