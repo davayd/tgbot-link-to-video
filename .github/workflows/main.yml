@@ -24,6 +24,7 @@ jobs:
           LOG_DEBUG=true
           VALID_CHAT_IDS=${{ vars.VALID_CHAT_IDS }}
           WEBHOOK_URL=${{ vars.WEBHOOK_URL }}
+          SHOW_USER_CAPTION=true
           EOF
 
       - name: Build and start containers
