@@ -4,7 +4,7 @@ import { logger } from "./winston-logger.js";
 import { igramApiDownloadVideo } from "../downloaders/igram-downloader.js";
 import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { DownloaderType, FileType, ProcessVideoContext } from "../models.js";
-import { LOG_DEBUG } from "../constants.js";
+import { LOG_DEBUG, SHOW_USER_CAPTION } from "../constants.js";
 import TelegramBot from "node-telegram-bot-api";
 import { ssstikDownloadVideo } from "../downloaders/tiktok-downloader.js";
 import { snapinstaDownloadVideo } from "../downloaders/snapinsta-downloader.js";
@@ -21,10 +21,12 @@ export async function processAndSendVideo({
   bot,
   url,
   chatId,
-  username,
+  user,
   downloader,
-  originalMessageId,
+  originalMessage,
+  topicId,
 }: ProcessVideoContext): Promise<void> {
+  let filePath: string | null = null;
   try {
     // Generate a safe filename
     const fileName = Math.random()
@@ -55,7 +57,7 @@ export async function processAndSendVideo({
     }
 
     // File in format like /usr/src/app/video.mp4
-    const filePath = path.join(fileDir, downloadedFile);
+    filePath = path.join(fileDir, downloadedFile);
     LOG_DEBUG && logger.debug(`FilePath: ${filePath}`);
 
     // Check file size
@@ -66,34 +68,54 @@ export async function processAndSendVideo({
       throw new Error("File size exceeds 100MB limit");
     }
 
-    await bot.sendChatAction(chatId, "upload_video");
-    await sendFile(bot, chatId, username, filePath, fileType);
-    await fs.unlink(filePath);
-    await bot.deleteMessage(chatId, originalMessageId);
-  } catch (error: any) {
-    let errorMessage = error.message;
-    await bot.sendMessage(chatId, `${errorMessage}`, {
-      reply_to_message_id: originalMessageId,
+    await bot.sendChatAction(chatId, "upload_video", {
+      message_thread_id: topicId,
     });
+    await sendFile(
+      bot,
+      chatId,
+      user,
+      filePath,
+      fileType,
+      originalMessage,
+      topicId
+    );
+    await bot.deleteMessage(chatId, originalMessage.message_id);
+  } catch (error: any) {
+    // let errorMessage = error.message;
+    // await bot.sendMessage(chatId, `${errorMessage}`, {
+    //   reply_to_message_id: originalMessageId,
+    // });
     logger.error(`Error in processAndSendVideo: ${error.stack}`);
+  } finally {
+    if (filePath) {
+      await fs.unlink(filePath);
+    }
   }
 }
 
 async function sendFile(
   bot: TelegramBot,
   chatId: string | number,
-  username: string,
+  user: TelegramBot.User,
   filePath: string,
-  fileType: FileType
+  fileType: FileType,
+  originalMessage: TelegramBot.Message,
+  topicId: number | undefined
 ) {
   try {
+    const username = user.username ?? user.first_name;
+
     if (fileType === "mp4") {
       await bot.sendVideo(chatId, filePath, {
-        caption: `From @${username} with 💕`,
+        caption: SHOW_USER_CAPTION ? `From @${username} with 💕` : undefined,
+        message_thread_id: topicId,
       });
+
     } else if (fileType === "jpg") {
       await bot.sendPhoto(chatId, filePath, {
-        caption: `From @${username} with 💕`,
+        caption: SHOW_USER_CAPTION ? `From @${username} with 💕` : undefined,
+        message_thread_id: topicId,
       });
     } else {
       logger.error(`Unsupported file type: ${fileType}`);

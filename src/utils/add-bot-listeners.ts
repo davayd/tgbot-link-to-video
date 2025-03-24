@@ -9,17 +9,17 @@ export async function addBotListeners(bot: TelegramBot) {
   bot.on("text", async (msg) => {
     try {
       const chatId = msg.chat.id;
+      const topicId = msg.message_thread_id;
       const originalMessageId = msg.message_id;
       const url = msg.text;
-      const username =
-        msg.forward_sender_name ?? msg.from?.username ?? "unknown";
+      const user = msg.from;
 
-      if (!url || !isValidUrl(url)) {
+      if (!url || !isValidUrl(url) || !user) {
         return;
       }
 
       logger.info(
-        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${username} \n originalMessageId: ${originalMessageId}`
+        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${user?.username} \n originalMessageId: ${originalMessageId} \n topicId: ${topicId}`
       );
 
       if (!VALID_CHAT_IDS.includes(chatId)) {
@@ -30,9 +30,10 @@ export async function addBotListeners(bot: TelegramBot) {
         bot,
         url,
         chatId,
-        username,
+        topicId,
+        user,
         downloader: getDownloaderType(url),
-        originalMessageId,
+        originalMessage: msg,
       });
     } catch (error: any) {
       logger.error(`Error in onText listener: ${error.stack}`);
@@ -41,5 +42,18 @@ export async function addBotListeners(bot: TelegramBot) {
 
   bot.on("webhook_error", (error) => {
     logger.error(`Webhook error: ${error.stack}`);
+  });
+
+  bot.on("text", async (msg) => {
+    const allMembers = `@Kudasati @Arti465 @archi_ll @sky_pneuma @ddfanky`;
+    const text = msg.text?.toLowerCase() ?? "";
+    const username = msg.from?.username;
+
+    if (text === "хотс?") {
+      await bot.sendMessage(
+        msg.chat.id,
+        allMembers.replace(`@${username}`, "")
+      );
+    }
   });
 }

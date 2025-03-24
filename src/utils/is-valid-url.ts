@@ -1,4 +1,4 @@
-import { DownloaderType } from "../models";
+import { DownloaderType, FileType } from "../models";
 
 export function isValidUrl(url: string) {
   return isYoutubeUrl(url) || isInstagramUrl(url) || isTiktokUrl(url);
@@ -27,4 +27,12 @@ export function getDownloaderType(url: string): DownloaderType {
     : isTiktokUrl(url)
     ? "ssstik"
     : "ytdlp";
+}
+
+export function getFileExtension(url: string): FileType {
+  if (url.includes(".mp4")) return "mp4";
+  if (url.includes(".jpg")) return "jpg";
+  if (url.includes(".png")) return "jpg";
+  if (url.includes(".webp")) return "mp4";
+  return "mp4";
 }

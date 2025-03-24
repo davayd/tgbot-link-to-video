@@ -11,7 +11,9 @@ export interface ProcessVideoContext {
   bot: TelegramBot;
   url: string;
   chatId: number | string;
-  username: string;
+  topicId: number | undefined;
+  user: TelegramBot.User;
   downloader: DownloaderType;
-  originalMessageId: number;
+  originalMessage: TelegramBot.Message;
+
 }

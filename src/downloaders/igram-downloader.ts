@@ -4,60 +4,23 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import { FileType } from "../models.js";
 import { logger } from "../utils/winston-logger.js";
-import { Browser, chromium, LaunchOptions, Page, Response } from "playwright";
-import {
-  LOG_DEBUG,
-  PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
-} from "../constants.js";
+import { Response } from "playwright";
+import { LOG_DEBUG } from "../constants.js";
 import { retryAsync } from "../utils/retry-async.js";
-import { executePageCreationWithTimeout } from "./browser-helpers.js";
+import { BaseBrowserDownloader } from "./base-browser-downloader.js";
 
 const streamPipeline = promisify(pipeline);
 
 const IG_URL_REELS = "https://igram.world/reels-downloader";
 const IG_URL_STORIES = "https://igram.world/story-saver";
+const SERVICE_NAME = "IGRAM";
 
 async function getFileLocationFromIgram(url: string) {
   const igramUrl = url.includes("stories") ? IG_URL_STORIES : IG_URL_REELS;
-  let browser: Browser | null = null;
-  let href: string | null = null;
-  let page: Page | null = null;
 
-  const browserOptions: LaunchOptions = {
-    ...(PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
-      executablePath: PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
-    }),
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    headless: true,
-    timeout: 10000,
-  };
+  const engine = new BaseBrowserDownloader(SERVICE_NAME, igramUrl);
 
-  browser = await chromium.launch(browserOptions);
-
-  try {
-    LOG_DEBUG &&
-      logger.debug(`Browser options: ${JSON.stringify(browserOptions)}`);
-
-    LOG_DEBUG && logger.debug(`Launching browser`);
-    page = await executePageCreationWithTimeout(browser, "Handle igram url");
-
-    // If the url is a /share/reel/ link, we need to navigate to the actual page (might be temporary issue)
-    if (url.includes("/share/reel/")) {
-      const redirectedPage = await executePageCreationWithTimeout(
-        browser,
-        "Handle /share/reel/ link"
-      );
-      await redirectedPage.goto(url);
-      url = redirectedPage.url();
-      await redirectedPage.close();
-    }
-
-    LOG_DEBUG && logger.debug(`Navigating to ${igramUrl}`);
-    await page.goto(igramUrl);
-
-    LOG_DEBUG && logger.debug(`Setting viewport size to 1080x1024`);
-    await page.setViewportSize({ width: 1080, height: 1024 });
-
+  return engine.download(async (page) => {
     LOG_DEBUG && logger.debug(`Filling search form with ${url}`);
     await page.fill("#search-form-input", url);
 
@@ -85,21 +48,8 @@ async function getFileLocationFromIgram(url: string) {
     await page.click(".search-form__button");
     await page.bringToFront();
     const href = await hrefPromise;
-
-    if (!href) {
-      LOG_DEBUG && logger.error(`Failed to get HREF from igram`);
-      throw new Error("Не удалось получить ссылку из IGRAM");
-    }
-
     return href;
-  } catch (error: any) {
-    LOG_DEBUG && logger.error(`ERROR: ${error.stack}`);
-    throw error;
-  } finally {
-    await browser?.close();
-    browser = null;
-    page = null;
-  }
+  });
 }
 
 export async function igramApiDownloadVideo(
