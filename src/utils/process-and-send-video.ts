@@ -2,16 +2,15 @@ import path from "path";
 import fs from "fs/promises";
 import { logger } from "./winston-logger.js";
 import { igramApiDownloadVideo } from "../downloaders/igram-downloader.js";
-import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { DownloaderType, FileType, ProcessVideoContext } from "../models.js";
 import { LOG_DEBUG, SHOW_USER_CAPTION } from "../constants.js";
 import TelegramBot from "node-telegram-bot-api";
-import { ssstikDownloadVideo } from "../downloaders/tiktok-downloader.js";
 import { snapinstaDownloadVideo } from "../downloaders/snapinsta-downloader.js";
 import { sssinstagramDownloadVideo } from "../downloaders/sssinstagram-downloader.js";
+import { cobaltDownloadVideo } from "../downloaders/cobalt-downloader.js";
 
-type InstagramDownloader = "sssinstagram" | "igram" | "snapinsta";
-const instagramDownloaders: InstagramDownloader[] = [
+const downloaders: DownloaderType[] = [
+  "cobalt",
   "sssinstagram",
   "igram",
   "snapinsta",
@@ -22,7 +21,6 @@ export async function processAndSendVideo({
   url,
   chatId,
   user,
-  downloader,
   originalMessage,
   topicId,
 }: ProcessVideoContext): Promise<void> {
@@ -37,9 +35,7 @@ export async function processAndSendVideo({
 
     // Download the video
     let fileType: FileType = "mp4";
-    LOG_DEBUG && logger.debug(`Downloader: ${downloader}`);
     const { fileType: fileTypeFromDownloader } = await tryDownload(
-      downloader,
       url,
       fileDir,
       fileName
@@ -111,7 +107,6 @@ async function sendFile(
         caption: SHOW_USER_CAPTION ? `From @${username} with 💕` : undefined,
         message_thread_id: topicId,
       });
-
     } else if (fileType === "jpg") {
       await bot.sendPhoto(chatId, filePath, {
         caption: SHOW_USER_CAPTION ? `From @${username} with 💕` : undefined,
@@ -127,18 +122,20 @@ async function sendFile(
   }
 }
 
-async function tryDownloadInstagram(
-  url: string,
-  fileDir: string,
-  fileName: string
-) {
+async function tryDownload(url: string, fileDir: string, fileName: string) {
   let lastError: Error | null = null;
 
-  for (const downloader of instagramDownloaders) {
+  for (const downloader of downloaders) {
     try {
       let fileType: FileType = "mp4";
 
       switch (downloader) {
+        case "cobalt":
+          ({ fileType } = await cobaltDownloadVideo(
+            url,
+            path.join(fileDir, fileName)
+          ));
+          break;
         case "sssinstagram":
           ({ fileType } = await sssinstagramDownloadVideo(
             url,
@@ -168,33 +165,4 @@ async function tryDownloadInstagram(
   }
 
   throw lastError || new Error("All Instagram downloaders failed");
-}
-
-async function tryDownload(
-  downloader: DownloaderType,
-  url: string,
-  fileDir: string,
-  fileName: string
-) {
-  let fileType: FileType = "mp4";
-
-  if (url.includes("instagram.com")) {
-    return tryDownloadInstagram(url, fileDir, fileName);
-  }
-
-  switch (downloader) {
-    case "ytdlp":
-      await ytdlpDownloadVideo(url, path.join(fileDir, fileName));
-      break;
-    case "ssstik":
-      ({ fileType } = await ssstikDownloadVideo(
-        url,
-        path.join(fileDir, fileName)
-      ));
-      break;
-    default:
-      throw new Error(`Unsupported downloader: ${downloader}`);
-  }
-
-  return { fileType };
 }

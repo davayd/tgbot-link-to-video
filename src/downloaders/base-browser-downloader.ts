@@ -1,5 +1,6 @@
 import { Browser, chromium, LaunchOptions, Page } from "playwright";
 import {
+  IS_PROD,
   LOG_DEBUG,
   PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
 } from "../constants.js";
@@ -13,7 +14,7 @@ export class BaseBrowserDownloader {
       executablePath: PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
     }),
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    headless: true,
+    headless: false,
     timeout: 60 * 1000,
   };
 

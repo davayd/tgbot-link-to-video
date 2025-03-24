@@ -1,7 +1,7 @@
 import TelegramBot from "node-telegram-bot-api";
 import { logger } from "./winston-logger.js";
 import { addToVideoQueue } from "./video-queue.js";
-import { isValidUrl, getDownloaderType } from "./is-valid-url.js";
+import { isValidUrl } from "./is-valid-url.js";
 import { VALID_CHAT_IDS } from "../constants.js";
 
 export async function addBotListeners(bot: TelegramBot) {
@@ -32,7 +32,6 @@ export async function addBotListeners(bot: TelegramBot) {
         chatId,
         topicId,
         user,
-        downloader: getDownloaderType(url),
         originalMessage: msg,
       });
     } catch (error: any) {

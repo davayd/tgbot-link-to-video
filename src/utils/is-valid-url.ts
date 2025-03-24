@@ -1,4 +1,4 @@
-import { DownloaderType, FileType } from "../models";
+import { FileType } from "../models";
 
 export function isValidUrl(url: string) {
   return isYoutubeUrl(url) || isInstagramUrl(url) || isTiktokUrl(url);
@@ -19,14 +19,6 @@ function isYoutubeUrl(url: string) {
 function isTiktokUrl(url: string) {
   const tiktokRegex = /(https?:\/\/)?(www\.)?tiktok\.com\//;
   return tiktokRegex.test(url);
-}
-
-export function getDownloaderType(url: string): DownloaderType {
-  return isInstagramUrl(url)
-    ? "sssinstagram"
-    : isTiktokUrl(url)
-    ? "ssstik"
-    : "ytdlp";
 }
 
 export function getFileExtension(url: string): FileType {

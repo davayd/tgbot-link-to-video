@@ -5,7 +5,9 @@ export type DownloaderType =
   | "igram"
   | "sssinstagram"
   | "ssstik"
-  | "snapinsta";
+  | "snapinsta"
+  | "cobalt";
+
 export type FileType = "mp4" | "jpg";
 export interface ProcessVideoContext {
   bot: TelegramBot;
@@ -13,7 +15,5 @@ export interface ProcessVideoContext {
   chatId: number | string;
   topicId: number | undefined;
   user: TelegramBot.User;
-  downloader: DownloaderType;
   originalMessage: TelegramBot.Message;
-
 }
