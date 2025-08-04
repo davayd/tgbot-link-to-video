@@ -32,6 +32,6 @@
     "@types/node-fetch": "^2.6.11",
     "@types/node-telegram-bot-api": "^0.64.8",
     "patch-package": "^8.0.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.2"
   }
 }
