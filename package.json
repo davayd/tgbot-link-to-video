@@ -29,7 +29,7 @@
     "yt-dlp-exec": "^1.0.2"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.6.11",
+    "@types/node-fetch": "^2.6.13",
     "@types/node-telegram-bot-api": "^0.64.10",
     "patch-package": "^8.0.0",
     "typescript": "^5.9.2"
