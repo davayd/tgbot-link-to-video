@@ -9,6 +9,7 @@ export async function addBotListeners(bot: TelegramBot) {
   bot.on("text", async (msg) => {
     try {
       const chatId = msg.chat.id;
+      const topicId = msg.message_thread_id;
       const originalMessageId = msg.message_id;
       const url = msg.text;
       const user = msg.from;
@@ -18,7 +19,7 @@ export async function addBotListeners(bot: TelegramBot) {
       }
 
       logger.info(
-        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${user?.username} \n originalMessageId: ${originalMessageId}`
+        `Received message: \n url: ${url}, \n chatId: ${chatId}, \n username: ${user?.username} \n originalMessageId: ${originalMessageId} \n topicId: ${topicId}`
       );
 
       if (!VALID_CHAT_IDS.includes(chatId)) {
@@ -29,6 +30,7 @@ export async function addBotListeners(bot: TelegramBot) {
         bot,
         url,
         chatId,
+        topicId,
         user,
         downloader: getDownloaderType(url),
         originalMessage: msg,

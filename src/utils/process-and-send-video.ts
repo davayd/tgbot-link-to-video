@@ -4,7 +4,7 @@ import { logger } from "./winston-logger.js";
 import { igramApiDownloadVideo } from "../downloaders/igram-downloader.js";
 import { ytdlpDownloadVideo } from "../downloaders/youtube-downloader.js";
 import { DownloaderType, FileType, ProcessVideoContext } from "../models.js";
-import { LOG_DEBUG } from "../constants.js";
+import { LOG_DEBUG, SHOW_USER_CAPTION } from "../constants.js";
 import TelegramBot from "node-telegram-bot-api";
 import { ssstikDownloadVideo } from "../downloaders/tiktok-downloader.js";
 import { snapinstaDownloadVideo } from "../downloaders/snapinsta-downloader.js";
@@ -24,6 +24,7 @@ export async function processAndSendVideo({
   user,
   downloader,
   originalMessage,
+  topicId,
 }: ProcessVideoContext): Promise<void> {
   let filePath: string | null = null;
   try {
@@ -67,8 +68,18 @@ export async function processAndSendVideo({
       throw new Error("File size exceeds 100MB limit");
     }
 
-    await bot.sendChatAction(chatId, "upload_video");
-    await sendFile(bot, chatId, user, filePath, fileType, originalMessage);
+    await bot.sendChatAction(chatId, "upload_video", {
+      message_thread_id: topicId,
+    });
+    await sendFile(
+      bot,
+      chatId,
+      user,
+      filePath,
+      fileType,
+      originalMessage,
+      topicId
+    );
     await bot.deleteMessage(chatId, originalMessage.message_id);
   } catch (error: any) {
     // let errorMessage = error.message;
@@ -89,29 +100,22 @@ async function sendFile(
   user: TelegramBot.User,
   filePath: string,
   fileType: FileType,
-  originalMessage: TelegramBot.Message
+  originalMessage: TelegramBot.Message,
+  topicId: number | undefined
 ) {
   try {
     const username = user.username ?? user.first_name;
 
     if (fileType === "mp4") {
       await bot.sendVideo(chatId, filePath, {
-        caption: `From @${username} with 💕`,
+        caption: SHOW_USER_CAPTION ? `From @${username} with 💕` : undefined,
+        message_thread_id: topicId,
       });
 
-      // await bot.editMessageMedia(
-      //   {
-      //     type: "video",
-      //     media: `attach://${filePath}`,
-      //   },
-      //   {
-      //     message_id: originalMessage.message_id,
-      //     chat_id: chatId,
-      //   }
-      // );
     } else if (fileType === "jpg") {
       await bot.sendPhoto(chatId, filePath, {
-        caption: `From @${username} with 💕`,
+        caption: SHOW_USER_CAPTION ? `From @${username} with 💕` : undefined,
+        message_thread_id: topicId,
       });
     } else {
       logger.error(`Unsupported file type: ${fileType}`);
