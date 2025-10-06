@@ -31,7 +31,7 @@
   "devDependencies": {
     "@types/node-fetch": "^2.6.13",
     "@types/node-telegram-bot-api": "^0.64.11",
-    "patch-package": "^8.0.0",
+    "patch-package": "^8.0.1",
     "typescript": "^5.9.3"
   }
 }
